@@ -12,6 +12,8 @@
   - [Controllers](#controllers)
   - [Subscriptions](#subscriptions)
 - [Usage](#usage)
+- [Libraries](#libraries)
+  - [Routing](#routing)
 - [Roadmap](#roadmap)
 - [License](#license)
 
@@ -168,6 +170,12 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 (rum/mount (Counter)
            (. js/document (getElementById "app")))
 ```
+
+## Libraries
+
+### Routing
+
+Check out [scrum.router](https://github.com/roman01la/scrum.router), a minimal routing library for Scrum.
 
 ## Roadmap
 - Get rid of global state
