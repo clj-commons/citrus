@@ -21,7 +21,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 ## Features
 
 - Decoupled application state in a single atom
-- Reactive queries into the state
+- Reactive queries
 - A notion of *controller* to keep application domains separate
 
 ## Installation
@@ -71,19 +71,39 @@ Controller is a multimethod which performs intended actions against application 
 
 ### Subscriptions
 
-A subscription is a reactive query into application state. It is basically an atom which holds a part of the state value. Optional second argument is an aggregate function which computes a materialized view.
+A subscription is a reactive query into application state. It is basically an atom which holds a part of the state value. Optional second argument is an aggregate function which computes a materialized view. You can also do parameterized and aggregate subscriptions.
 
 Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/react` function which hooks in a watch function to update a component when an atom gets an update.
 
 ```clojure
+;; normal subscription
 (def fname (scrum.core/subscription [:users 0 :fname]))
+
+;; a subscription with aggregate function
 (def full-name (scrum.core/subscription [:users 0] #(str (:fname %) " " (:lname %))))
+
+;; parameterized subscription
+(defn user [id]
+  (scrum.core/subscription [:users id]))
+
+;; aggregate subscription
+(def discount (scrum.core/subscription [:user :discount]))
+(def goods (scrum.core/subscription [:goods :selected]))
+
+(def shopping-cart
+  (rum/derived-atom [discount goods] ::key
+    (fn [discount goods]
+      (let [price (->> goods (map :price) (reduce +))]
+        (- price (* discount (/ price 100)))))))
 
 ;; usage
 (rum/defc NameField < rum/reactive []
-  [:div
-   [:div.fname (rum/react fname)]
-   [:div.full-name (rum/react full-name)]])
+  (let [user (rum/react (user 0))])
+    [:div
+     [:div.fname (rum/react fname)]
+     [:div.lname (:lname user)]
+     [:div.full-name (rum/react full-name)]
+     [:div (str "Total: " (rum/react shopping-cart))]])
 ```
 
 ## Usage
