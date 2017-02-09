@@ -12,6 +12,7 @@
   - [Controllers](#controllers)
   - [Subscriptions](#subscriptions)
 - [Usage](#usage)
+- [Roadmap](#roadmap)
 - [License](#license)
 
 ## Motivation
@@ -167,6 +168,11 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 (rum/mount (Counter)
            (. js/document (getElementById "app")))
 ```
+
+## Roadmap
+- Get rid of global state
+- Storage agnostic architecture? (Atom, DataScript, etc.)
+- Better effects handling (network, localStorage, etc.)
 
 ## License
 
