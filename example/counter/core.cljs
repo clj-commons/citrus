@@ -1,7 +1,6 @@
 (ns counter.core
   (:require [rum.core :as rum]
-            [scrum.dispatcher :as d]
-            [scrum.core :refer [subscription]]))
+            [scrum.core :as scrum]))
 
 ;;
 ;; define controller & event handlers
@@ -11,47 +10,38 @@
 
 (defmulti control (fn [action] action))
 
-(defmethod control :init [_ _ db]
-  (assoc db :counter initial-state))
+(defmethod control :init []
+  initial-state)
 
-(defmethod control :inc [_ _ db]
-  (update db :counter inc))
+(defmethod control :inc [_ _ counter]
+  (inc counter))
 
-(defmethod control :dec [_ _ db]
-  (update db :counter dec))
-
-
-;;
-;; define subscription
-;;
-
-(def counter (subscription [:counter]))
+(defmethod control :dec [_ _ counter]
+  (dec counter))
 
 
 ;;
 ;; define UI component
 ;;
 
-;; create dispatcher for particular controller
-(def dispatch-counter! (partial d/dispatch! :counter))
-
-(rum/defc Counter < rum/reactive []
+(rum/defc Counter < rum/reactive [r]
   [:div
-   [:button {:on-click #(dispatch-counter! :dec)} "-"]
-   [:span (rum/react counter)]
-   [:button {:on-click #(dispatch-counter! :inc)} "+"]])
+   [:button {:on-click #(scrum/dispatch! r :counter :dec)} "-"]
+   [:span (rum/react (scrum/subscription r [:counter]))]
+   [:button {:on-click #(scrum/dispatch! r :counter :inc)} "+"]])
 
 
 ;;
 ;; start up
 ;;
 
-;; register controller
-(d/register! :counter control)
+;; create Reconciler instance
+(defonce reconciler
+  (scrum/reconciler (atom {}) {:counter control}))
 
-;; initialize registered controllers
-(defonce dispatched-init (d/broadcast! :init))
+;; initialize controllers
+(defonce init-ctrl (scrum/broadcast! reconciler :init))
 
 ;; render
-(rum/mount (Counter)
+(rum/mount (Counter reconciler)
            (. js/document (getElementById "app")))
