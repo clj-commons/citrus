@@ -43,14 +43,13 @@
     (pr-writer {:val (-deref this)} writer opts)
     (-write writer "]")))
 
-
 (defn reduce-cursor-in
   "Given atom with deep nested value, path inside it and reducing function, creates an atom-like structure
    that can be used separately from main atom, but only for reading value:
 
      (def db (atom { :users { \"Ivan\" { :children [1 2 3] }}}))
      (def ivan (rum/reduce-cursor-in db [:users \"Ivan\"] last))
-     \\@ivan ;; => 3
+     @ivan ;; => 3
 
   Returned value supports deref, watches and metadata.
   The only supported option is `:meta`"
