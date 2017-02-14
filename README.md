@@ -180,7 +180,7 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 Check out [scrum.router](https://github.com/roman01la/scrum.router), a minimal routing library for Scrum.
 
 ## Roadmap
-- Get rid of global state
+- <strike>Get rid of global state</strike>
 - Storage agnostic architecture? (Atom, DataScript, etc.)
 - Better effects handling (network, localStorage, etc.)
 
