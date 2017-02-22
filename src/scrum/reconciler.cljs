@@ -1,8 +1,21 @@
 (ns scrum.reconciler)
 
+(def queue (volatile! []))
+(def schedule (volatile! []))
+
+(defn- queue-update! [f]
+  (vswap! queue conj f))
+
+(defn- schedule-update! [f]
+  (vswap! schedule conj f)
+  (js/requestAnimationFrame #(when-not (zero? (count @schedule)) (f))))
+
+
 (defprotocol IReconciler
   (dispatch! [this controller action args])
-  (broadcast! [this action args]))
+  (dispatch-sync! [this controller action args])
+  (broadcast! [this action args])
+  (broadcast-sync! [this action args]))
 
 (deftype Reconciler [state controllers meta]
   Object
@@ -37,20 +50,6 @@
   IHash
   (-hash [this] (goog/getUid this))
 
-  IReset
-  (-reset! [_ newv]
-    (-swap! state (constantly newv)))
-
-  ISwap
-  (-swap! [this f]
-    (reset! state (f (-deref state))))
-  (-swap! [this f a]
-    (reset! state (f (-deref state) a)))
-  (-swap! [this f a b]
-    (reset! state (f (-deref state) a b)))
-  (-swap! [this f a b rest]
-    (reset! state (apply f (-deref state) a b rest)))
-
   IPrintWithWriter
   (-pr-writer [this writer opts]
     (-write writer "#object [scrum.reconciler.Reconciler ")
@@ -59,7 +58,20 @@
 
   IReconciler
   (dispatch! [this cname action args]
-    (-swap! this #(let [ctrl (get controllers cname)
+    (queue-update! #(let [ctrl (get controllers cname)
+                          cstate (get % cname)]
+                      (->> cstate
+                        (ctrl action args)
+                        (assoc % cname))))
+    (schedule-update!
+     #(swap! state (fn [state]
+                     (let [new-state (reduce (fn [state f] (f state)) state @queue)]
+                       (vreset! queue [])
+                       (vreset! schedule [])
+                       new-state)))))
+
+  (dispatch-sync! [this cname action args]
+    (swap! state #(let [ctrl (get controllers cname)
                         cstate (get % cname)]
                     (->> cstate
                       (ctrl action args)
@@ -67,4 +79,8 @@
 
   (broadcast! [this action args]
     (doseq [controller (keys controllers)]
-      (dispatch! this controller action args))))
+      (dispatch! this controller action args)))
+
+  (broadcast-sync! [this action args]
+    (doseq [controller (keys controllers)]
+      (dispatch-sync! this controller action args))))
