@@ -7,9 +7,9 @@
   (vreset! queue []))
 
 
-(defn- schedule-update! [f scheduled?]
+(defn- schedule-update! [schedule! f scheduled?]
   (vreset! scheduled? true)
-  (js/requestAnimationFrame #(when @scheduled? (f))))
+  (schedule! #(when @scheduled? (f))))
 
 (defn- unschedule! [scheduled?]
   (vreset! scheduled? nil))
@@ -21,7 +21,7 @@
   (broadcast! [this action args])
   (broadcast-sync! [this action args]))
 
-(deftype Reconciler [state controllers meta]
+(deftype Reconciler [state meta]
 
   Object
   (equiv [this other]
@@ -63,38 +63,42 @@
 
   IReconciler
   (dispatch! [this cname action args]
-    (console.log "QUEUE")
+   (let [app-state (:scrum/state state)
+         queue (:scrum/queue state)
+         scheduled? (:scrum/scheduled? state)
+         batched-updates (or (:scrum/batched-updates state) js/requestAnimationFrame)
+         chunked-updates (:scrum/chunked-updates state)]
     (queue-update!
-     #(let [ctrl (get controllers cname)
+     #(let [ctrl (get-in state [:scrum/controllers cname])
             cstate (get % cname)]
         (->> cstate
           (ctrl action args)
           (assoc % cname)))
-     (:scrum/queue state))
+     queue)
     (schedule-update!
-     #(swap! (:scrum/state state)
+     batched-updates
+     #(swap! app-state
              (fn [old-state]
-               (console.log "UPDATE")
                (let [queue @(:scrum/queue state)]
                  (clear-queue! (:scrum/queue state))
-                 (unschedule! (:scrum/scheduled? state))
+                 (unschedule! scheduled?)
                  (reduce (fn [interim-state f] (f interim-state))
                          old-state
                          queue))))
-     (:scrum/scheduled? state)))
+     scheduled?)))
 
   (dispatch-sync! [this cname action args]
     (swap! (:scrum/state state)
-           #(let [ctrl (get controllers cname)
+           #(let [ctrl (get-in state [:scrum/controllers cname])
                   cstate (get % cname)]
               (->> cstate
                 (ctrl action args)
                 (assoc % cname)))))
 
   (broadcast! [this action args]
-    (doseq [controller (keys controllers)]
+    (doseq [controller (keys (:scrum/controllers state))]
       (dispatch! this controller action args)))
 
   (broadcast-sync! [this action args]
-    (doseq [controller (keys controllers)]
+    (doseq [controller (keys (:scrum/controllers state))]
       (dispatch-sync! this controller action args))))

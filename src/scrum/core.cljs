@@ -6,21 +6,29 @@
 (defn reconciler
   "Creates an instance of Reconciler
 
-    (scrum/reconciler (atom {}) {:counter counter})
+    (scrum/reconciler {:state (atom {})
+                       :controllers {:counter counter}
+                       :batched-updates f
+                       :chunked-updates f})
 
   Arguments
 
-    state       - an atom
-    controllers - a hash of state controllers
+    config              - a map of
+      state             - app state atom
+      controllers       - a map of state controllers
+      batched-updates   - a function used to batch reconciler updates, defaults to `js/requestAnimationFrame`
+      chunked-updates   - a function used to divide reconciler update into chunks, doesn't used by default
 
-  Returned value supports deref, swap!, reset!, watches and metadata.
+  Returned value supports deref, watches and metadata.
   The only supported option is `:meta`"
-  [state controllers & {:as options}]
+  [{:keys [state controllers batched-updates chunked-updates]} & {:as options}]
   (r/Reconciler.
-   {:scrum/state state
+   {:scrum/controllers controllers
+    :scrum/state state
     :scrum/queue (volatile! [])
-    :scrum/scheduled? (volatile! nil)}
-   controllers
+    :scrum/scheduled? (volatile! nil)
+    :scrum/batched-updates batched-updates
+    :scrum/chunked-updates chunked-updates}
    (:meta options)))
 
 (defn dispatch!
