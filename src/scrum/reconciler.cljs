@@ -1,14 +1,18 @@
 (ns scrum.reconciler)
 
-(def queue (volatile! []))
-(def schedule (volatile! []))
-
-(defn- queue-update! [f]
+(defn- queue-update! [f queue]
   (vswap! queue conj f))
 
-(defn- schedule-update! [f]
-  (vswap! schedule conj f)
-  (js/requestAnimationFrame #(when-not (zero? (count @schedule)) (f))))
+(defn- clear-queue! [queue]
+  (vreset! queue []))
+
+
+(defn- schedule-update! [f scheduled?]
+  (vreset! scheduled? true)
+  (js/requestAnimationFrame #(when @scheduled? (f))))
+
+(defn- unschedule! [scheduled?]
+  (vreset! scheduled? nil))
 
 
 (defprotocol IReconciler
@@ -18,6 +22,7 @@
   (broadcast-sync! [this action args]))
 
 (deftype Reconciler [state controllers meta]
+
   Object
   (equiv [this other]
     (-equiv this other))
@@ -33,18 +38,18 @@
 
   IDeref
   (-deref [_]
-    (-deref state))
+    (-deref (:scrum/state state)))
 
   IWatchable
   (-add-watch [this key callback]
-    (add-watch state (list this key)
+    (add-watch (:scrum/state state) (list this key)
       (fn [_ _ oldv newv]
         (when (not= oldv newv)
           (callback key this oldv newv))))
     this)
 
   (-remove-watch [this key]
-    (remove-watch state (list this key))
+    (remove-watch (:scrum/state state) (list this key))
     this)
 
   IHash
@@ -58,24 +63,33 @@
 
   IReconciler
   (dispatch! [this cname action args]
-    (queue-update! #(let [ctrl (get controllers cname)
-                          cstate (get % cname)]
-                      (->> cstate
-                        (ctrl action args)
-                        (assoc % cname))))
+    (console.log "QUEUE")
+    (queue-update!
+     #(let [ctrl (get controllers cname)
+            cstate (get % cname)]
+        (->> cstate
+          (ctrl action args)
+          (assoc % cname)))
+     (:scrum/queue state))
     (schedule-update!
-     #(swap! state (fn [state]
-                     (let [new-state (reduce (fn [state f] (f state)) state @queue)]
-                       (vreset! queue [])
-                       (vreset! schedule [])
-                       new-state)))))
+     #(swap! (:scrum/state state)
+             (fn [old-state]
+               (console.log "UPDATE")
+               (let [queue @(:scrum/queue state)]
+                 (clear-queue! (:scrum/queue state))
+                 (unschedule! (:scrum/scheduled? state))
+                 (reduce (fn [interim-state f] (f interim-state))
+                         old-state
+                         queue))))
+     (:scrum/scheduled? state)))
 
   (dispatch-sync! [this cname action args]
-    (swap! state #(let [ctrl (get controllers cname)
-                        cstate (get % cname)]
-                    (->> cstate
-                      (ctrl action args)
-                      (assoc % cname)))))
+    (swap! (:scrum/state state)
+           #(let [ctrl (get controllers cname)
+                  cstate (get % cname)]
+              (->> cstate
+                (ctrl action args)
+                (assoc % cname)))))
 
   (broadcast! [this action args]
     (doseq [controller (keys controllers)]

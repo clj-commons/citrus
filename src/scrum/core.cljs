@@ -16,7 +16,12 @@
   Returned value supports deref, swap!, reset!, watches and metadata.
   The only supported option is `:meta`"
   [state controllers & {:as options}]
-  (r/Reconciler. state controllers (:meta options)))
+  (r/Reconciler.
+   {:scrum/state state
+    :scrum/queue (volatile! [])
+    :scrum/scheduled? (volatile! nil)}
+   controllers
+   (:meta options)))
 
 (defn dispatch!
   "Invoke an action on particular controller asynchronously
