@@ -19,7 +19,21 @@
   (r/Reconciler. state controllers (:meta options)))
 
 (defn dispatch!
-  "Invoke an action on particular controller
+  "Invoke an action on particular controller asynchronously
+
+    (scrum/dispatch! reconciler :users :load \"id\")
+
+  Arguments
+
+    reconciler - an instance of Reconciler
+    controller - name of a controller
+    action     - a dispatch value of a method defined in the controller
+    args       - arguments to be passed into the controller"
+  [reconciler controller action & args]
+  (r/dispatch! reconciler controller action args))
+
+(defn dispatch-sync!
+  "Invoke an action on particular controller synchronously
 
     (scrum/dispatch! reconciler :users :load \"id\")
 
@@ -33,7 +47,20 @@
   (r/dispatch! reconciler controller action args))
 
 (defn broadcast!
-  "Invoke an action on all controllers
+  "Invoke an action on all controllers synchronously
+
+    (scrum/broadcast! reconciler :init)
+
+  Arguments
+
+    reconciler - an instance of Reconciler
+    action     - a dispatch value of a method defined in the controller
+    args       - arguments to be passed into the controller"
+  [reconciler action & args]
+  (r/broadcast! reconciler action args))
+
+(defn broadcast-sync!
+  "Invoke an action on all controllers asynchronously
 
     (scrum/broadcast! reconciler :init)
 
