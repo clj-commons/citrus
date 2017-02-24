@@ -26,7 +26,7 @@
    controllers
    state
    (volatile! [])
-   (volatile! false)
+   (volatile! nil)
    (or batched-updates js/requestAnimationFrame)
    chunked-updates
    (:meta options)))

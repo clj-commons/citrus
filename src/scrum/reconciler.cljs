@@ -8,11 +8,10 @@
 
 
 (defn- schedule-update! [schedule! f scheduled?]
-  (vreset! scheduled? true)
-  (schedule! #(when @scheduled? (f))))
-
-(defn- unschedule! [scheduled?]
-  (vreset! scheduled? false))
+  (when-let [id @scheduled?]
+    (vreset! scheduled? nil)
+    (js/cancelAnimationFrame id))
+  (vreset! scheduled? (schedule! f)))
 
 
 (defprotocol IReconciler
@@ -71,7 +70,6 @@
              (fn [old-state]
                (let [q @queue]
                  (clear-queue! queue)
-                 (unschedule! scheduled?)
                  (reduce (fn [agg-state f] (f agg-state)) old-state q))))
      scheduled?))
 
