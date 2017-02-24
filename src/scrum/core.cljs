@@ -23,12 +23,12 @@
   The only supported option is `:meta`"
   [{:keys [state controllers batched-updates chunked-updates]} & {:as options}]
   (r/Reconciler.
-   {:scrum/controllers controllers
-    :scrum/state state
-    :scrum/queue (volatile! [])
-    :scrum/scheduled? (volatile! nil)
-    :scrum/batched-updates batched-updates
-    :scrum/chunked-updates chunked-updates}
+   controllers
+   state
+   (volatile! [])
+   (volatile! false)
+   (or batched-updates js/requestAnimationFrame)
+   chunked-updates
    (:meta options)))
 
 (defn dispatch!
