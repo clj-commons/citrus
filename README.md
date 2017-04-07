@@ -9,11 +9,12 @@
 - [Motivation](#motivation)
 - [Features](#features)
 - [Installation](#installation)
+- [Usage](#usage)
 - [How it works](#how-it-works)
+  - [Reconciler](#reconciler)
   - [Dispatcher](#dispatcher)
   - [Controllers](#controllers)
   - [Subscriptions](#subscriptions)
-- [Usage](#usage)
 - [Libraries](#libraries)
   - [Routing](#routing)
 - [Roadmap](#roadmap)
@@ -28,14 +29,68 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 - Decoupled application state in a single atom
 - Reactive queries
 - A notion of *controller* to keep application domains separate
+- No global state, everything lives in `Reconciler` instance
 
 ## Installation
 
-Add to project.clj: `[org.roman01la/scrum "0.1.0-SNAPSHOT"]`
+Add to project.clj: `[org.roman01la/scrum "1.0.0-SNAPSHOT"]`
+
+## Usage
+
+```clojure
+(ns counter.core
+  (:require [rum.core :as rum]
+            [scrum.core :as scrum]))
+
+;;
+;; define controller & action handlers
+;;
+
+(def initial-state 0)
+
+(defmulti control (fn [action] action))
+
+(defmethod control :init []
+  initial-state)
+
+(defmethod control :inc [_ _ counter]
+  (inc counter))
+
+(defmethod control :dec [_ _ counter]
+  (dec counter))
+
+
+;;
+;; define UI component
+;;
+
+(rum/defc Counter < rum/reactive [r]
+  [:div
+   [:button {:on-click #(scrum/dispatch! r :counter :dec)} "-"]
+   [:span (rum/react (scrum/subscription r [:counter]))]
+   [:button {:on-click #(scrum/dispatch! r :counter :inc)} "+"]])
+
+
+;;
+;; start up
+;;
+
+;; create Reconciler instance
+(defonce reconciler
+  (scrum/reconciler {:state (atom {})
+                     :controllers {:counter control}}))
+
+;; initialize controllers
+(defonce init-ctrl (scrum/broadcast-sync! reconciler :init))
+
+;; render
+(rum/mount (Counter reconciler)
+           (. js/document (getElementById "app")))
+```
 
 ## How it works
 
-With Scrum you build everything around a well known architecture pattern in modern SPA development:
+With _Scrum_ you build everything around a well known architecture pattern in modern SPA development:
 
 *DISPATCH EVENT*
 
@@ -51,17 +106,35 @@ With Scrum you build everything around a well known architecture pattern in mode
 
 *RENDER*
 
-### Dispatcher
+## Reconciler
 
-Dispatcher communicates intention to perform an action, whether it is state update or a network request.
+Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of application state, handles actions and subscriptions, and performs batched updates (via `requestAnimationFrame`):
 
 ```clojure
-(scrum.dispatcher/dispatch! :controller-name :action-name &args)
+(defonce reconciler
+  (scrum/reconciler {:state (atom {})
+                     :controllers {:counter control}}))
+```
+
+### Dispatcher
+
+Dispatcher communicates intention to perform an action, whether it is state update or a network request. By default an action is executed asynchronously, use `dispatch-sync!` when synchronous action is required:
+
+```clojure
+(scrum.core/dispatch! reconciler :controller-name :action-name &args)
+(scrum.core/dispatch-sync! reconciler :controller-name :action-name &args)
+```
+
+`broadcast!` and its synchronous counterpart `broadcast-sync!` should be used to broadcast an action to all controllers:
+
+```clojure
+(scrum.core/broadcast! reconciler :action-name &args)
+(scrum.core/broadcast-sync! reconciler :action-name &args)
 ```
 
 ### Controllers
 
-Controller is a multimethod which performs intended actions against application state. A controller usually have at least an initial state and `:init` method.
+Controller is a multimethod which executes actions against application state. A controller usually have at least an initial state and `:init` method.
 
 ```clojure
 (def initial-state 0)
@@ -71,7 +144,11 @@ Controller is a multimethod which performs intended actions against application 
 (defmethod control :init [action &args db]
   (assoc db :counter initial-state))
 
-(scrum.dispatcher/register! :counter control)
+(defmethod control :inc [action &args db]
+  (update db :counter inc))
+
+(defmethod control :dec [action &args db]
+  (update db :counter dec))
 ```
 
 ### Subscriptions
@@ -82,102 +159,45 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 
 ```clojure
 ;; normal subscription
-(def fname (scrum.core/subscription [:users 0 :fname]))
+(defn fname [reconciler]
+  (scrum.core/subscription reconciler [:users 0 :fname]))
 
 ;; a subscription with aggregate function
-(def full-name (scrum.core/subscription [:users 0] #(str (:fname %) " " (:lname %))))
+(defn full-name [reconciler]
+  (scrum.core/subscription reconciler [:users 0] #(str (:fname %) " " (:lname %))))
 
 ;; parameterized subscription
-(defn user [id]
-  (scrum.core/subscription [:users id]))
+(defn user [reconciler id]
+  (scrum.core/subscription reconciler [:users id]))
 
 ;; aggregate subscription
-(def discount (scrum.core/subscription [:user :discount]))
-(def goods (scrum.core/subscription [:goods :selected]))
+(defn discount [reconciler]
+  (scrum.core/subscription reconciler [:user :discount]))
 
-(def shopping-cart
-  (rum/derived-atom [discount goods] ::key
+(defn goods [reconciler]
+  (scrum.core/subscription reconciler [:goods :selected]))
+
+(defn shopping-cart [reconciler]
+  (rum/derived-atom [(discount reconciler) (goods reconciler)] ::key
     (fn [discount goods]
       (let [price (->> goods (map :price) (reduce +))]
         (- price (* discount (/ price 100)))))))
 
 ;; usage
-(rum/defc NameField < rum/reactive []
-  (let [user (rum/react (user 0))])
+(rum/defc NameField < rum/reactive [reconciler]
+  (let [user (rum/react (user reconciler 0))])
     [:div
-     [:div.fname (rum/react fname)]
+     [:div.fname (rum/react (fname reconciler))]
      [:div.lname (:lname user)]
-     [:div.full-name (rum/react full-name)]
-     [:div (str "Total: " (rum/react shopping-cart))]])
-```
-
-## Usage
-
-```clojure
-(ns counter.core
-  (:require [rum.core :as rum]
-            [scrum.dispatcher :as d]
-            [scrum.core :refer [subscription]]))
-
-;;
-;; define controller & event handlers
-;;
-
-(def initial-state 0)
-
-(defmulti control (fn [action] action))
-
-(defmethod control :init [_ _ db]
-  (assoc db :counter initial-state))
-
-(defmethod control :inc [_ _ db]
-  (update db :counter inc))
-
-(defmethod control :dec [_ _ db]
-  (update db :counter dec))
-
-
-;;
-;; define subscription
-;;
-
-(def counter (subscription [:counter]))
-
-
-;;
-;; define UI component
-;;
-
-;; create dispatcher for particular controller
-(def dispatch-counter! (partial d/dispatch! :counter))
-
-(rum/defc Counter < rum/reactive []
-  [:div
-   [:button {:on-click #(dispatch-counter! :dec)} "-"]
-   [:span (rum/react counter)]
-   [:button {:on-click #(dispatch-counter! :inc)} "+"]])
-
-
-;;
-;; start up
-;;
-
-;; register controller
-(d/register! :counter control)
-
-;; initialize registered controllers
-(defonce dispatched-init (d/broadcast! :init))
-
-;; render
-(rum/mount (Counter)
-           (. js/document (getElementById "app")))
+     [:div.full-name (rum/react (full-name reconciler))]
+     [:div (str "Total: " (rum/react (shopping-cart reconciler)))]])
 ```
 
 ## Libraries
 
 ### Routing
 
-Check out [scrum.router](https://github.com/roman01la/scrum.router), a minimal routing library for Scrum.
+Check out [scrum.router](https://github.com/roman01la/scrum.router), a minimal routing library for _Scrum_.
 
 ## Roadmap
 - <strike>Get rid of global state</strike>

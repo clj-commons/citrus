@@ -3,7 +3,7 @@
             [scrum.core :as scrum]))
 
 ;;
-;; define controller & event handlers
+;; define controller & action handlers
 ;;
 
 (def initial-state 0)
