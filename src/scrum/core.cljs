@@ -57,10 +57,10 @@
     action     - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
   [reconciler controller action & args]
-  (r/dispatch! reconciler controller action args))
+  (r/dispatch-sync! reconciler controller action args))
 
 (defn broadcast!
-  "Invoke an action on all controllers synchronously
+  "Invoke an action on all controllers asynchronously
 
     (scrum/broadcast! reconciler :init)
 
@@ -73,7 +73,7 @@
   (r/broadcast! reconciler action args))
 
 (defn broadcast-sync!
-  "Invoke an action on all controllers asynchronously
+  "Invoke an action on all controllers synchronously
 
     (scrum/broadcast! reconciler :init)
 
@@ -83,7 +83,7 @@
     action     - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
   [reconciler action & args]
-  (r/broadcast! reconciler action args))
+  (r/broadcast-sync! reconciler action args))
 
 
 (defn subscription

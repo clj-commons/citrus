@@ -37,10 +37,11 @@
 
 ;; create Reconciler instance
 (defonce reconciler
-  (scrum/reconciler (atom {}) {:counter control}))
+  (scrum/reconciler {:state (atom {})
+                     :controllers {:counter control}}))
 
 ;; initialize controllers
-(defonce init-ctrl (scrum/broadcast! reconciler :init))
+(defonce init-ctrl (scrum/broadcast-sync! reconciler :init))
 
 ;; render
 (rum/mount (Counter reconciler)
