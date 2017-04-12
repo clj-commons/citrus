@@ -2,8 +2,6 @@
 
 *State Coordination for [Rum](https://github.com/tonsky/rum/)*
 
-[![Clojars](https://img.shields.io/clojars/v/org.roman01la/scrum.svg)](https://clojars.org/org.roman01la/scrum)
-
 ## Table of Contents
 
 - [Motivation](#motivation)
