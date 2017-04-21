@@ -13,8 +13,6 @@
   - [Dispatcher](#dispatcher)
   - [Controllers](#controllers)
   - [Subscriptions](#subscriptions)
-- [Libraries](#libraries)
-  - [Routing](#routing)
 - [Roadmap](#roadmap)
 - [License](#license)
 
@@ -190,12 +188,6 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
      [:div.full-name (rum/react (full-name reconciler))]
      [:div (str "Total: " (rum/react (shopping-cart reconciler)))]])
 ```
-
-## Libraries
-
-### Routing
-
-Check out [scrum.router](https://github.com/roman01la/scrum.router), a minimal routing library for _Scrum_.
 
 ## Roadmap
 - <strike>Get rid of global state</strike>
