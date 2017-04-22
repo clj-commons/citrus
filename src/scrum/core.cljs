@@ -23,13 +23,13 @@
   The only supported option is `:meta`"
   [{:keys [state controllers batched-updates chunked-updates]} & {:as options}]
   (r/Reconciler.
-   controllers
-   state
-   (volatile! [])
-   (volatile! nil)
-   (or batched-updates js/requestAnimationFrame)
-   chunked-updates
-   (:meta options)))
+    controllers
+    state
+    (volatile! [])
+    (volatile! nil)
+    (or batched-updates js/requestAnimationFrame)
+    chunked-updates
+    (:meta options)))
 
 (defn dispatch!
   "Invoke an action on particular controller asynchronously
