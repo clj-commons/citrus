@@ -1,18 +1,17 @@
 (ns scrum.resolver)
 
-(deftype Resolver [resolve reducer]
+(deftype Resolver [state resolvers path reducer]
 
   clojure.lang.IDeref
 
   (deref [_]
-    (let [data (resolve)]
+    (let [resolve (get resolvers path)
+          data (resolve)]
+      (swap! state assoc-in path data)
       (if reducer
         (reducer data)
         data))))
 
-(defn make-resolver
-  ([resolve]
-   (make-resolver resolve nil))
-  ([resolve reducer]
-   (Resolver. resolve reducer)))
+(defn make-resolver [state resolvers path reducer]
+   (Resolver. state resolvers path reducer))
 
