@@ -9,10 +9,10 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [How it works](#how-it-works)
-  - [Reconciler](#reconciler)
-  - [Dispatcher](#dispatcher)
-  - [Controllers](#controllers)
-  - [Subscriptions](#subscriptions)
+  - [Model state with the Reconciler](#model-state-with-the-reconciler)
+  - [Dispatch event with the Dispatcher](#dispatch-event-with-the-dispatcher)
+  - [Handle events with Controllers](#handle-events-with-controllers)
+  - [Query state reactively with Subscriptions](#query-state-reactively-with-subscriptions)
 - [Roadmap](#roadmap)
 - [License](#license)
 
@@ -29,7 +29,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 
 ## Installation
 
-Add to project.clj: `[org.roman01la/scrum "1.0.0-SNAPSHOT"]`
+Add to project.clj/build.boot: `[org.roman01la/scrum "1.0.0-SNAPSHOT"]`
 
 ## Usage
 
@@ -73,7 +73,7 @@ Add to project.clj: `[org.roman01la/scrum "1.0.0-SNAPSHOT"]`
 
 ;; create Reconciler instance
 (defonce reconciler
-  (scrum/reconciler {:state (atom nil)
+  (scrum/reconciler {:state (atom {}) ;; initial state
                      :controllers {:counter control}}))
 
 ;; initialize controllers
@@ -88,21 +88,25 @@ Add to project.clj: `[org.roman01la/scrum "1.0.0-SNAPSHOT"]`
 
 With _Scrum_ you build everything around a well known architecture pattern in modern SPA development:
 
-*DISPATCH EVENT*
+*MODEL STATE* (with `reconciler`)
 
 ↓
 
-*HANDLE EVENT*
+*DISPATCH EVENT* (with `dispatch!`, `dispatch-sync!`, `broadcast!`, `broadcast-sync!`)
 
 ↓
 
-*QUERY STATE*
+*HANDLE EVENT* (with `:controllers` functions)
 
 ↓
 
-*RENDER*
+*QUERY STATE REACTIVELY* (with `subscription`, `rum/react` and `rum/reactive`)
 
-## Reconciler
+↓
+
+*RENDER* (automatic ! profit :+1:)
+
+### Model state with the Reconciler
 
 Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of application state, handles actions and subscriptions, and performs batched updates (via `requestAnimationFrame`):
 
@@ -112,9 +116,17 @@ Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of app
                      :controllers {:counter control}}))
 ```
 
-### Dispatcher
+The value at the `:state` key is the initial state. You can pass either an atom of empty map that will be populated with the `:init` event or an atom with a map containing the whole initial state, modeled at your convenience.
 
-Dispatcher communicates intention to perform an action, whether it is state update or a network request. By default an action is executed asynchronously, use `dispatch-sync!` when synchronous action is required:
+The value at the `:controllers` key is a map from key to controller function. The controller stores its state as a value of its key from this map. So the keys in the `:controllers` will be reflected in the `:state` atom. This is where modeling state happens and application domains keep separated.
+
+*NOTE*: the `:init` event pattern isn't enforced at all by scrum, but we consider it a good idea for 2 reasons :
+- it decouples the setup of scrum with the gathering of the initial state, gathering that could happen in several ways (hardcoded, read from some global JSON/Transit data pasted in HTML from the server, a user event, etc.)
+- it allows setting a global watcher in the atom for ad-hoc stuff outside of the normal scrum cycle for maximum flexibility.
+
+### Dispatch event with the Dispatcher
+
+Dispatcher communicates intention to perform an action, whether it is updating the state or performing a network request. By default an action is executed asynchronously, use `dispatch-sync!` when synchronous action is required:
 
 ```clojure
 (scrum.core/dispatch! reconciler :controller-name :action-name &args)
@@ -128,9 +140,9 @@ Dispatcher communicates intention to perform an action, whether it is state upda
 (scrum.core/broadcast-sync! reconciler :action-name &args)
 ```
 
-### Controllers
+### Handle events with Controllers
 
-Controller is a multimethod which executes actions against application state (the value inside the atom created with the reconciler). A controller usually have at least an initial state and `:init` method.
+Controller is a multimethod which executes actions against application state. A controller usually have at least an initial state and `:init` method.
 
 ```clojure
 (def initial-state 0)
@@ -147,7 +159,9 @@ Controller is a multimethod which executes actions against application state (th
   (update db :counter dec))
 ```
 
-### Subscriptions
+It's important to understand that the value returned by a controller won't affect the whole state, but only the part corresponding to its associated key in the `:controllers` map of the reconciler.
+
+### Query state reactively with Subscriptions
 
 A subscription is a reactive query into application state. It is basically an atom which holds a part of the state value. Optional second argument is an aggregate function which computes a materialized view. You can also do parameterized and aggregate subscriptions.
 
@@ -191,6 +205,7 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 
 ## Roadmap
 - <strike>Get rid of global state</strike>
+- Make scrum isomorphic (in progress, see [this issue](#3))
 - Storage agnostic architecture? (Atom, DataScript, etc.)
 - Better effects handling (network, localStorage, etc.)
 
