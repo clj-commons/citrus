@@ -73,7 +73,7 @@ Add to project.clj: `[org.roman01la/scrum "1.0.0-SNAPSHOT"]`
 
 ;; create Reconciler instance
 (defonce reconciler
-  (scrum/reconciler {:state (atom {})
+  (scrum/reconciler {:state (atom nil)
                      :controllers {:counter control}}))
 
 ;; initialize controllers
@@ -130,7 +130,7 @@ Dispatcher communicates intention to perform an action, whether it is state upda
 
 ### Controllers
 
-Controller is a multimethod which executes actions against application state. A controller usually have at least an initial state and `:init` method.
+Controller is a multimethod which executes actions against application state (the value inside the atom created with the reconciler). A controller usually have at least an initial state and `:init` method.
 
 ```clojure
 (def initial-state 0)
