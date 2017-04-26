@@ -203,6 +203,11 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
      [:div (str "Total: " (rum/react (shopping-cart reconciler)))]])
 ```
 
+## Best practices
+
+- Pass the reconciler explicity from parents components to children. Since it is reference type it won't affect shouldComponentUpdate aka rum/static optimization. But if you prefer to do it Redux-way, you can use context in Rum as well https://github.com/tonsky/rum/#interop-with-react
+- Set up the initial state by `broadcast-sync!`ing an `:init` event before first rendering. This way you're free to gather the initial as you need in each controller and can setup a global watcher in the atom passed to `:state` in the reconciler.
+
 ## Roadmap
 - <strike>Get rid of global state</strike>
 - Make scrum isomorphic (in progress, see [this issue](#3))
