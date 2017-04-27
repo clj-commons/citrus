@@ -2,6 +2,11 @@
 
 *State Coordination for [Rum](https://github.com/tonsky/rum/)*
 
+<a href="http://clojurians.net/">
+  <img src="slack.png" width="64" height="64" />
+  <span>Discuss on Slack #scrum</span>
+</a>
+
 ## Table of Contents
 
 - [Motivation](#motivation)
