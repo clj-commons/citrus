@@ -20,6 +20,7 @@
   - [Query state reactively with Subscriptions](#query-state-reactively-with-subscriptions)
 - [Best practices](#best-practices)
 - [Roadmap](#roadmap)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Motivation
@@ -220,7 +221,16 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 - <strike>Get rid of global state</strike>
 - Make scrum isomorphic (in progress, see [this issue](#3))
 - Storage agnostic architecture? (Atom, DataScript, etc.)
-- Better effects handling (network, localStorage, etc.)
+- Better effects handling (network, localStorage, etc.) (in progress, see [this issue](#7))
+- Provide better developer experience using `clojure.spec`
+
+## Contributing
+
+If you've encountered an issue or want to request a feature or any other kind of contribution, please file an issue and provide detailed description.
+
+This project is using [Leiningen](https://leiningen.org/) build tool, make sure you have it installed.
+
+Run tests with `lein test`.
 
 ## License
 
