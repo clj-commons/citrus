@@ -19,6 +19,7 @@
   - [Handle events with Controllers](#handle-events-with-controllers)
   - [Query state reactively with Subscriptions](#query-state-reactively-with-subscriptions)
 - [Best practices](#best-practices)
+- [Testing](#testing)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
@@ -216,6 +217,61 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 
 - Pass the reconciler explicity from parent components to children. Since it is reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer to do it _Redux-way_, you can use context in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
 - Set up the initial state by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
+
+## Testing
+
+Testing state management logic in *Scrum* is really simple. You can test controllers output, since they are pure functions, and how they alter application state when dispatched against reconciler instance.
+
+*NOTE:* Using synchronous dispatch `scrum.core/dispatch-sync!` makes it easier to test state changes.
+
+```clj
+(ns app.controllers.counter)
+
+(defmulti control (fn [action] action))
+
+(defmethod control :init [_ [initial-state] _]
+  initial-state)
+
+(defmethod control :inc [_ _ counter]
+  (inc counter))
+
+(defmethod control :dec [_ _ counter]
+  (dec counter))
+```
+
+```clj
+(ns app.test.controllers.counter-test
+  (:require [clojure.test :refer :all]
+            [scrum.core :as scrum]
+            [app.controllers.counter :as counter]))
+
+(def state (atom {}))
+
+(def r
+  (scrum/reconciler
+    {:state state
+     :controllers
+     {:counter counter/control}}))
+     
+(deftest counter-control
+  (testing "Should return initial-state value"
+    (is (zero? (counter/control :init 0 nil))))
+  (testing "Should return incremented value"
+    (is (= 1 (counter/control :inc nil 0))))
+  (testing "Should return decremented value"
+    (is (zero? (counter/control :dec nil 1)))))
+    
+(deftest counter-state
+  (testing "Should initialize state value with 0"
+    (scrum/dispatch-sync! r :counter :init 0)
+    (is (zero? (:counter @state))))
+  (testing "Should increment state value"
+    (scrum/dispatch-sync! r :counter :inc)
+    (is (= (:counter @state) 1)))
+  (testing "Should deccrement state value"
+    (scrum/dispatch-sync! r :counter :dec)
+    (is (= (:counter @state) 0))))
+```
 
 ## Roadmap
 - <strike>Get rid of global state</strike>
