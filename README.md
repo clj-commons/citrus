@@ -220,7 +220,7 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 - <strike>Get rid of global state</strike>
 - Make scrum isomorphic (in progress, see [this issue](#3))
 - Storage agnostic architecture? (Atom, DataScript, etc.)
-- Better effects handling (network, localStorage, etc.)
+- Better effects handling (network, localStorage, etc.) (in progress, see [this issue](#7))
 
 ## License
 
