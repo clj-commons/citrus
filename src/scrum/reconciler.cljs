@@ -1,13 +1,13 @@
 (ns scrum.reconciler)
 
-(defn- queue-update! [f queue]
+(defn- queue-effects! [queue f]
   (vswap! queue conj f))
 
 (defn- clear-queue! [queue]
   (vreset! queue []))
 
 
-(defn- schedule-update! [schedule! f scheduled?]
+(defn- schedule-update! [schedule! scheduled? f]
   (when-let [id @scheduled?]
     (vreset! scheduled? nil)
     (js/cancelAnimationFrame id))
@@ -20,7 +20,7 @@
   (broadcast! [this action args])
   (broadcast-sync! [this action args]))
 
-(deftype Reconciler [controllers state queue scheduled? batched-updates chunked-updates meta]
+(deftype Reconciler [controllers effect-handlers state queue scheduled? batched-updates chunked-updates meta]
 
   Object
   (equiv [this other]
@@ -62,20 +62,34 @@
 
   IReconciler
   (dispatch! [this cname action args]
-    (queue-update! #(let [ctrl (get controllers cname)]
-                      (update % cname (partial ctrl action args)))
-                   queue)
-    (schedule-update! batched-updates
-     #(swap! state
-             (fn [old-state]
-               (let [q @queue]
-                 (clear-queue! queue)
-                 (reduce (fn [agg-state f] (f agg-state)) old-state q))))
-     scheduled?))
+    (queue-effects!
+      queue
+      [cname ((get controllers cname) action args (get @state cname))])
+
+    (schedule-update!
+      batched-updates
+      scheduled?
+      (fn []
+        (let [effects @queue]
+          (clear-queue! queue)
+          (when-let [state-effects (filter (comp :state second) effects)]
+            (swap! state
+              #(reduce (fn [agg [cname {cstate :state}]]
+                         (assoc agg cname cstate))
+                       % state-effects)))
+          (doseq [[cname effects] effects]
+            (doseq [[id effect] effects]
+              (when-let [handler (get effect-handlers id)]
+                (handler this cname effect))))))))
 
   (dispatch-sync! [this cname action args]
-    (swap! state #(let [ctrl (get controllers cname)]
-                   (update % cname (partial ctrl action args)))))
+    (let [effects ((get controllers cname) action args (get @state cname))]
+      (doseq [[id effect] effects]
+        (let [handler (get effect-handlers id)]
+          (cond
+            (= id :state) (swap! state assoc cname effect)
+            handler (handler this cname effect)
+            :else nil)))))
 
   (broadcast! [this action args]
     (doseq [controller (keys controllers)]

@@ -1,4 +1,4 @@
-(defproject org.roman01la/scrum "2.0.0-SNAPSHOT"
+(defproject org.roman01la/scrum "2.1.0-SNAPSHOT"
   :description "State Coordination for Rum"
   :url "https://github.com/roman01la/scrum"
   :license {:name "Eclipse Public License"
