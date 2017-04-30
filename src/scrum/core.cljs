@@ -1,7 +1,6 @@
 (ns scrum.core
-  (:require [rum.core :as rum]
-            [scrum.reconciler :as r]
-            [scrum.rum.cursor :refer [reduce-cursor-in]]))
+  (:require [scrum.reconciler :as r]
+            [scrum.cursor :as c]))
 
 (defn reconciler
   "Creates an instance of Reconciler
@@ -15,7 +14,7 @@
 
     config              - a map of
       state             - app state atom
-      controllers       - a map of state controllers
+      controllers       - a hash of state controllers
       batched-updates   - a function used to batch reconciler updates, defaults to `js/requestAnimationFrame`
       chunked-updates   - a function used to divide reconciler update into chunks, doesn't used by default
 
@@ -98,6 +97,6 @@
     path       - a vector which describes a path into reconciler's atom value
     reducer    - an aggregate function which computes a materialized view of data behind the path"
   ([reconciler path]
-   (rum/cursor-in reconciler path))
+   (subscription reconciler path identity))
   ([reconciler path reducer]
-   (reduce-cursor-in reconciler path reducer)))
+   (c/reduce-cursor-in reconciler path reducer)))

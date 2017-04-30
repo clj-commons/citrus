@@ -3,7 +3,6 @@
 (deftype Resolver [state resolvers path reducer]
 
   clojure.lang.IDeref
-
   (deref [_]
     (let [resolve (get resolvers path)
           data (resolve)]

@@ -1,5 +1,5 @@
 (ns scrum.core
-  (:require [scrum.resolver :refer [make-resolver]]))
+  (:require [scrum.resolver :as r]))
 
 (defn reconciler
   "A hash of subscription resolvers where keys are subscription path vectors and values are data resolving functions
@@ -40,5 +40,5 @@
   ([reconciler path]
    (subscription reconciler path nil))
   ([{:keys [state resolvers]} path reducer]
-   (make-resolver state resolvers path reducer)))
+   (r/make-resolver state resolvers path reducer)))
 
