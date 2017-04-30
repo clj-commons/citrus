@@ -1,4 +1,5 @@
-(ns scrum.reconciler)
+(ns scrum.reconciler
+  (:require-macros [scrum.macros :as m]))
 
 (defn- queue-effects! [queue f]
   (vswap! queue conj f))
@@ -6,13 +7,11 @@
 (defn- clear-queue! [queue]
   (vreset! queue []))
 
-
 (defn- schedule-update! [schedule! scheduled? f]
   (when-let [id @scheduled?]
     (vreset! scheduled? nil)
     (js/cancelAnimationFrame id))
   (vreset! scheduled? (schedule! f)))
-
 
 (defprotocol IReconciler
   (dispatch! [this controller action args])
@@ -77,14 +76,14 @@
               #(reduce (fn [agg [cname {cstate :state}]]
                          (assoc agg cname cstate))
                        % state-effects)))
-          (doseq [[cname effects] effects]
-            (doseq [[id effect] effects]
+          (m/doseq [[cname effects] effects]
+            (m/doseq [[id effect] effects]
               (when-let [handler (get effect-handlers id)]
                 (handler this cname effect))))))))
 
   (dispatch-sync! [this cname action args]
     (let [effects ((get controllers cname) action args (get @state cname))]
-      (doseq [[id effect] effects]
+      (m/doseq [[id effect] effects]
         (let [handler (get effect-handlers id)]
           (cond
             (= id :state) (swap! state assoc cname effect)
@@ -92,9 +91,9 @@
             :else nil)))))
 
   (broadcast! [this action args]
-    (doseq [controller (keys controllers)]
+    (m/doseq [controller (keys controllers)]
       (dispatch! this controller action args)))
 
   (broadcast-sync! [this action args]
-    (doseq [controller (keys controllers)]
+    (m/doseq [controller (keys controllers)]
       (dispatch-sync! this controller action args))))
