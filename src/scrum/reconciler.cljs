@@ -72,15 +72,21 @@
         (let [effects
               (map (fn [[cname ctrl]] [cname (ctrl)]) @queue)]
           (clear-queue! queue)
-          (when-let [state-effects (filter (comp :state second) effects)]
-            (swap! state
-              #(reduce (fn [agg [cname {cstate :state}]]
-                         (assoc agg cname cstate))
-                       % state-effects)))
-          (m/doseq [[cname effects] effects]
-            (m/doseq [[id effect] effects]
-              (when-let [handler (get effect-handlers id)]
-                (handler this cname effect))))))))
+          (let [state-effects (filter (comp :state second) effects)
+                other-effects (->> effects
+                                   (map (fn [[cname effect]]
+                                          [cname (dissoc effect :state)]))
+                                   (filter (comp seq second)))]
+            (when (seq state-effects)
+              (swap! state
+                #(reduce (fn [agg [cname {cstate :state}]]
+                           (assoc agg cname cstate))
+                         % state-effects)))
+            (when (seq other-effects)
+              (m/doseq [[cname effects] effects]
+                (m/doseq [[id effect] effects]
+                  (when-let [handler (get effect-handlers id)]
+                    (handler this cname effect))))))))))
 
   (dispatch-sync! [this cname action args]
     (let [effects ((get controllers cname) action args (get @state cname))]
