@@ -20,6 +20,7 @@
   - [Side effects](#side-effects)
   - [Subscriptions](#subscriptions)
   - [Scheduling and batching](#scheduling-and-batching)
+  - [Server-side rendering](#server-side-rendering)
 - [Best practices](#best-practices)
 - [Testing](#testing)
 - [Roadmap](#roadmap)
@@ -321,6 +322,59 @@ Once 16ms timer is fired a queue of scheduled events is being executed to produc
 ;; swap! reduce old-state state-queue → new-state
 ;; doseq other-queue
 ```
+
+### Server-side rendering
+
+Server-side rendering in *Scrum* doesn't require any changes in UI components code, the API is the same. However it works differently under the hood when the code is executed in Clojure.
+
+Here's a list of the main differences from client-side:
+- reconciler accepts only one argument, a hash of subscriptions resolving functions
+- subscriptions are resolved synchronously
+- controllers are not used
+- all dispatching functions are disabled
+
+**subscriptions resolvers**
+
+To understand what is *subscription resolving function* let's start with a small example:
+
+```clojure
+;; used in both Clojure & ClojureScript
+(rum/defc Counter < rum/reactive [r]
+  [:div
+   [:button {:on-click #(scrum/dispatch! r :counter :dec)} "-"]
+   [:span (rum/react (scrum/subscription r [:counter]))]
+   [:button {:on-click #(scrum/dispatch! r :counter :inc)} "+"]])
+```
+
+```clojure
+;; server only
+(let [r (scrum/reconciler resolvers)] ;; create reconciler
+  (->> (Counter r) ;; initialize components tree
+       rum/render-html ;; render to HTML
+       (render-document @(:state r)))) ;; render into document template
+```
+
+```clojure
+;; server only
+(def resolvers
+  {[:counter] (constantly 0)}) ;; [:counter] subscription resolving function
+```
+
+From the above code snippet it's clear that `resolvers` is a hash map from subscription path, that is used when creating a subscription in UI components, to a function that returns a value. Normally resolving functions would access database or any other data source used on the backend.
+
+**resolver**
+
+A value returned from resolving function is stored in `Resolver` instance which is atom-like type that is used under the hood in subscriptions.
+
+**resolved data**
+
+In the above example you may have noticed `@(:state r)`. When rendering on server *Scrum* collects resolved data and provides application state in an atom behind `:state` key of the reconciler. This data should be rendered into HTML to rehydrate the app once it is initialized on the client-side.
+
+*NOTE*: in order to retrieve resolved data reconciler's state should be dereferenced only after `rum/render-html` call.
+
+**synchronous subscriptions**
+
+Every subscription created inside of components that are being rendered triggers corresponding resolving function which blocks rendering until a value is returned. The downside is that the more subscriptions there are down the components tree, the more time it will take to render the whole app. On the other hand it makes it possible to both render and retrieve state in one render pass. To reduce rendering time make sure you don't have too much subscriptions in components tree. Usually it's enough to have one or two in root component for every route.
 
 ## Best practices
 
