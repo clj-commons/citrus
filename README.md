@@ -14,10 +14,12 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [How it works](#how-it-works)
-  - [Model state with Reconciler](#model-state-with-reconciler)
-  - [Dispatch event with Dispatcher](#dispatch-event-with-dispatcher)
-  - [Handle events with Controllers](#handle-events-with-controllers)
-  - [Query state reactively with Subscriptions](#query-state-reactively-with-subscriptions)
+  - [Reconciler](#reconciler)
+  - [Dispatching events](#dispatching-events)
+  - [Handling events](#handling-events)
+  - [Side effects](#side-effects)
+  - [Subscriptions](#subscriptions)
+  - [Scheduling and batching](#scheduling-and-batching)
 - [Best practices](#best-practices)
 - [Testing](#testing)
 - [Roadmap](#roadmap)
@@ -26,18 +28,27 @@
 
 ## Motivation
 
-Have a simple, [re-frame](https://github.com/Day8/re-frame) like state management facilities to build web apps with Rum library while leveraging its API.
+Have a simple, [re-frame](https://github.com/Day8/re-frame) like state management facilities for building web apps with [Rum](https://github.com/tonsky/rum/) while leveraging its API.
 
 ## Features
 
-- Decoupled application state in a single atom
-- Reactive queries
-- A notion of *controller* to keep application domains separate
-- No global state, everything lives in `Reconciler` instance
+⚛️ Decoupled application state in a single atom
+
+📦 No global state, everything lives in `Reconciler` instance
+
+🎛 A notion of a *controller* to keep application domains separate
+
+🚀 Reactive queries
+
+📋 Side-effects are data
+
+⚡️ Async batched updates for better performance
+
+🚰 Server-side rendering with convenient state hydration
 
 ## Installation
 
-Add to *project.clj / build.boot*: `[org.roman01la/scrum "2.0.0-SNAPSHOT"]`
+Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.1.0-SNAPSHOT"]`
 
 ## Usage
 
@@ -47,21 +58,52 @@ Add to *project.clj / build.boot*: `[org.roman01la/scrum "2.0.0-SNAPSHOT"]`
             [scrum.core :as scrum]))
 
 ;;
-;; define controller & action handlers
+;; define controller & event handlers
 ;;
 
-(def initial-state 0)
+(def initial-state 0) ;; initial state
 
-(defmulti control (fn [action] action))
+(defmulti control (fn [event] event))
 
 (defmethod control :init []
-  initial-state)
+  {:local-storage
+   {:method :get
+    :key :counter
+    :on-read :init-ready}}) ;; read from local storage
+
+(defmethod control :init-ready [_ [counter]]
+  (if-not (nil? counter)
+    {:state counter} ;; init with saved state
+    {:state initial-state})) ;; or with predefined initial state
 
 (defmethod control :inc [_ _ counter]
-  (inc counter))
+  (let [next-counter (inc counter)]
+    {:state next-counter ;; update state
+     :local-storage
+     {:method :set
+      :data next-counter
+      :key :counter}})) ;; persist to local storage
 
 (defmethod control :dec [_ _ counter]
-  (dec counter))
+  (let [next-counter (dec counter)]
+    {:state next-counter ;; update state
+     :local-storage
+     {:method :set
+      :data next-counter
+      :key :counter}})) ;; persist to local storage
+
+
+;;
+;; define effect handler
+;;
+
+(defn local-storage [reconciler controller-name effect]
+  (let [{:keys [method data key on-read]} effect]
+    (case method
+      :set (js/localStorage.setItem (name key) data)
+      :get (->> (js/localStorage.getItem (name key))
+                (scrum/dispatch reconciler controller-name on-read))
+      nil)))
 
 
 ;;
@@ -81,8 +123,13 @@ Add to *project.clj / build.boot*: `[org.roman01la/scrum "2.0.0-SNAPSHOT"]`
 
 ;; create Reconciler instance
 (defonce reconciler
-  (scrum/reconciler {:state (atom {}) ;; initial state
-                     :controllers {:counter control}}))
+  (scrum/reconciler
+    {:state
+     (atom {}) ;; application state
+     :controllers
+     {:counter control} ;; controllers
+     :effect-handlers
+     {:local-storage local-storage}})) ;; effect handlers
 
 ;; initialize controllers
 (defonce init-ctrl (scrum/broadcast-sync! reconciler :init))
@@ -96,86 +143,121 @@ Add to *project.clj / build.boot*: `[org.roman01la/scrum "2.0.0-SNAPSHOT"]`
 
 With _Scrum_ you build everything around a well known architecture pattern in modern SPA development:
 
-*MODEL STATE* (with `reconciler`)
+📦 *Model application state* (with `reconciler`)
 
-↓
+📩 *Dispatch events* (with `dispatch!`, `dispatch-sync!`, `broadcast!` and `broadcast-sync!`)
 
-*DISPATCH EVENT* (with `dispatch!`, `dispatch-sync!`, `broadcast!`, `broadcast-sync!`)
+📬 *Handle events* (with `:controllers` functions)
 
-↓
+🕹 *Handle side effects* (with `:effect-handlers` functions)
 
-*HANDLE EVENT* (with `:controllers` functions)
+🚀 *Query state reactively* (with `subscription`, `rum/react` and `rum/reactive`)
 
-↓
+✨ *Render* (automatic & efficient ! profit :+1:)
 
-*QUERY STATE REACTIVELY* (with `subscription`, `rum/react` and `rum/reactive`)
+### Reconciler
 
-↓
-
-*RENDER* (automatic ! profit :+1:)
-
-### Model state with Reconciler
-
-Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of application state, handles actions and subscriptions, and performs batched updates (via `requestAnimationFrame`):
+Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of application state, handles events, side effects and subscriptions, and performs async batched updates (via `requestAnimationFrame`):
 
 ```clojure
 (defonce reconciler
   (scrum/reconciler {:state (atom {})
-                     :controllers {:counter control}}))
+                     :controllers {:counter control}
+                     :effect-handlers {:http http}}))
 ```
 
-The value at the `:state` key is the initial state of the reconciler represented as an atom which holds a hash map.
+**:state**
 
-The value at the `:controllers` key is a hash map from controller name to controller function. The controller stores its state in reconciler's state atom at the key which is the name of the controller in `:controllers` hash map. That is the keys in the `:controllers` will be reflected in the `:state` atom. This is where modeling state happens and application domains keep separated.
+The value at the `:state` key is the initial state of the reconciler represented as an atom which holds a hash map. The atom is created and passed explicitly.
 
-Usually controllers are initialized with their initial state by dispatching `:init` action.
+**:controllers**
 
-*NOTE*: the `:init` event pattern isn't enforced at all by _Scrum_, but we consider it is a good idea for 2 reasons:
-- it separates setup of _Scrum_ from initilization phase, because initilization could happen in several ways (hardcoded, read from some global JSON/Transit data rendered into HTML from the server, a user event, etc.)
-- it allows setting a global watcher in the atom for ad-hoc stuff outside of the normal _Scrum_ cycle for maximum flexibility
+The value at the `:controllers` key is a hash map from controller name to controller function. The controller stores its state in reconciler's `:state` atom at the key which is the name of the controller in `:controllers` hash map. That is, the keys in `:controllers` are reflected in the `:state` atom. This is where modeling state happens and application domains keep separated.
 
-### Dispatch event with Dispatcher
+Usually controllers are initialized with a predefined initial state value by dispatching `:init` event.
 
-Dispatcher communicates intention to perform an action, whether it is updating the state or performing a network request. By default an action is executed asynchronously, use `dispatch-sync!` when synchronous action is required:
+*NOTE*: the `:init` event pattern isn't enforced at all in _Scrum_, but we consider it is a good idea for 2 reasons:
+- it separates setup of the reconciler from initialization phase, because initialization could happen in several ways (hardcoded, read from global JSON/Transit data rendered into HTML from the server, user event, etc.)
+- allows setting a global watcher on the atom for ad-hoc stuff outside of the normal _Scrum_ cycle for maximum flexibility
+
+**:effect-handlers**
+
+The value at the `:effect-handlers` key is a hash map of side effect handlers. Handler function asynchronously performs impure computations such as state change, HTTP request, etc. The only built-in effects handler is `:state`, everything else should be implemented and provided by user.
+
+### Dispatching events
+
+Dispatched events communicate intention to perform a side effect, whether it is updating the state or performing a network request. By default effects are executed asynchronously, use `dispatch-sync!` when synchronous execution is required:
 
 ```clojure
-(scrum.core/dispatch! reconciler :controller-name :action-name &args)
-(scrum.core/dispatch-sync! reconciler :controller-name :action-name &args)
+(scrum.core/dispatch! reconciler :controller-name :event-name &args)
+(scrum.core/dispatch-sync! reconciler :controller-name :event-name &args)
 ```
 
-`broadcast!` and its synchronous counterpart `broadcast-sync!` should be used to broadcast an action to all controllers:
+`broadcast!` and its synchronous counterpart `broadcast-sync!` should be used to broadcast an event to all controllers:
 
 ```clojure
-(scrum.core/broadcast! reconciler :action-name &args)
-(scrum.core/broadcast-sync! reconciler :action-name &args)
+(scrum.core/broadcast! reconciler :event-name &args)
+(scrum.core/broadcast-sync! reconciler :event-name &args)
 ```
 
-### Handle events with Controllers
+### Handling events
 
-Controller is a multimethod which executes actions against application state. A controller usually have at least an initial state and `:init` method.
+A controller is a multimethod that returns effects. It usually has at least an initial state and `:init` event method.
+An effect is key/value pair where the key is the name of the effect handler and the value is description of the effect that satisfies particular handler.
 
 ```clojure
 (def initial-state 0)
 
-(defmulti control (fn [action] action))
+(defmulti control (fn [event] event))
 
-(defmethod control :init [action &args db]
-  (assoc db :counter initial-state))
+(defmethod control :init [event args state]
+  {:state initial-state})
 
-(defmethod control :inc [action &args db]
-  (update db :counter inc))
+(defmethod control :inc [event args state]
+  {:state (update state :counter inc)})
 
-(defmethod control :dec [action &args db]
-  (update db :counter dec))
+(defmethod control :dec [event args state]
+  {:state (update state :counter dec)})
 ```
 
-It's important to understand that `db` value that is passed in and returned by a controller won't affect the whole state, but only the part corresponding to its associated key in the `:controllers` map of the reconciler.
+It's important to understand that `state` value that is passed in won't affect the whole state, but only the part corresponding to its associated key in the `:controllers` map of the reconciler.
 
-### Query state reactively with Subscriptions
+### Side effects
 
-A subscription is a reactive query into application state. It is basically an atom which holds a part of the state value. Optional second argument is an aggregate function which computes a materialized view. You can also do parameterized and aggregate subscriptions.
+A side effect is an impure computation e.g. state mutation, HTTP request, storage access, etc. Because handling side effects is inconvenient and usually leads to cumbersome code, this operation is pushed outside of user code. In *Scrum* you don't perform effects directly in controllers. Instead controller methods return a hash map of effects represented as data. In every entry of the map the key is a name of the corresponding effects handler and the value is a description of the effect.
 
-Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/react` function which hooks in a watch function to update a component when an atom gets an update.
+Here's an example of an effect that describes HTTP request:
+
+```clojure
+{:http {:url "/api/users"
+        :method :post
+        :body {:name "John Doe"}
+        :headers {"Content-Type" "application/json"}
+        :on-success :create-user-ready
+        :on-error :create-user-failed}}
+```
+
+And corresponding handler function:
+
+```clojure
+(defn http [reconciler ctrl-name effect]
+  (let [{:keys [on-success on-error]} effect]
+    (-> (fetch effect)
+        (then #(scrum/dispatch! reconciler ctrl-name on-success %))
+        (catch #(scrum/dispatch! reconciler ctrl-name on-error %)))))
+```
+
+Handler function accepts three arguments: reconciler instance, the name key of the controller which produced the effect and the effect value itself.
+
+Notice how the above effect provides callback event names to handle HTTP response/error which are dispatched once request is done. This is a frequent pattern when it is expected that an effect can produce another one e.g. update state with response body.
+
+*NOTE*: `:state` is the only handler built into *Scrum*, because state change is always required operation.
+
+### Subscriptions
+
+A subscription is a reactive query into application state. It is an atom which holds a part of the state value retrieved with provided path. Optional second argument is an aggregate function that computes a materialized view. You can also do parameterized and aggregate subscriptions.
+
+Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/react` function which hooks in a watch function to update a component when an atom gets updated.
 
 ```clojure
 ;; normal subscription
@@ -213,33 +295,62 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
      [:div (str "Total: " (rum/react (shopping-cart reconciler)))]])
 ```
 
+### Scheduling and batching
+
+This section describes how effects execution works in *Scrum*. It is considered an advanced topic and is not necessary to read to start working with *Scrum*.
+
+**Scheduling**
+
+Events dispatched using `scrum/dispatch!` are always executed asynchronously. Execution is scheduled via `requestAnimationFrame` meaning that events that where dispatched in 16ms timeframe will be executed sequentially by the end of this time.
+
+```clojure
+;; |--×-×---×---×--|---
+;; 0ms            16ms
+```
+
+**Batching**
+
+Once 16ms timer is fired a queue of scheduled events is being executed to produce a sequence of effects. This sequence is then divided into two: state updates and other side effects. First, state updates are executed in a single `swap!`, which triggers only one re-render, and after that other effects are being executed.
+
+```clojure
+;; queue = [state1 http state2 local-storage]
+
+;; state-queue = [state1 state2]
+;; other-queue = [http local-storage]
+
+;; swap! reduce old-state state-queue → new-state
+;; doseq other-queue
+```
+
 ## Best practices
 
-- Pass the reconciler explicity from parent components to children. Since it is reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer to do it _Redux-way_, you can use context in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
-- Set up the initial state by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
+- Pass the reconciler explicity from parent components to children. Since it is a reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer to do it _Redux-way_, you can use context in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
+- Set up the initial state value by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
 
 ## Testing
 
-Testing state management logic in *Scrum* is really simple. You can test controllers output, since they are pure functions, and how they alter application state when dispatched against reconciler instance.
+Testing state management logic in *Scrum* is really simple. Here's what can be tested:
+- controllers output (effects)
+- state changes
 
-*NOTE:* Using synchronous dispatch `scrum.core/dispatch-sync!` makes it easier to test state changes.
+*NOTE:* Using synchronous dispatch `scrum.core/dispatch-sync!` makes it easier to test state updates.
 
-```clj
+```clojure
 (ns app.controllers.counter)
 
-(defmulti control (fn [action] action))
+(defmulti control (fn [event] event))
 
 (defmethod control :init [_ [initial-state] _]
-  initial-state)
+  {:state initial-state})
 
 (defmethod control :inc [_ _ counter]
-  (inc counter))
+  {:state (inc counter)})
 
 (defmethod control :dec [_ _ counter]
-  (dec counter))
+  {:state (dec counter)})
 ```
 
-```clj
+```clojure
 (ns app.test.controllers.counter-test
   (:require [clojure.test :refer :all]
             [scrum.core :as scrum]
@@ -252,15 +363,15 @@ Testing state management logic in *Scrum* is really simple. You can test control
     {:state state
      :controllers
      {:counter counter/control}}))
-     
+
 (deftest counter-control
   (testing "Should return initial-state value"
-    (is (zero? (counter/control :init 0 nil))))
+    (is (= (counter/control :init 0 nil) {:state 0})))
   (testing "Should return incremented value"
-    (is (= 1 (counter/control :inc nil 0))))
+    (is (= (counter/control :inc nil 0) {:state 1})))
   (testing "Should return decremented value"
-    (is (zero? (counter/control :dec nil 1)))))
-    
+    (is (= (counter/control :dec nil 1) {:state 0}))))
+
 (deftest counter-state
   (testing "Should initialize state value with 0"
     (scrum/dispatch-sync! r :counter :init 0)
