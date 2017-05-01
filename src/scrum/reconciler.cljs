@@ -63,13 +63,14 @@
   (dispatch! [this cname action args]
     (queue-effects!
       queue
-      [cname ((get controllers cname) action args (get @state cname))])
+      [cname #((get controllers cname) action args (get @state cname))])
 
     (schedule-update!
       batched-updates
       scheduled?
       (fn []
-        (let [effects @queue]
+        (let [effects
+              (map (fn [[cname ctrl]] [cname (ctrl)]) @queue)]
           (clear-queue! queue)
           (when-let [state-effects (filter (comp :state second) effects)]
             (swap! state
