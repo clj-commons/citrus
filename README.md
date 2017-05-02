@@ -328,7 +328,7 @@ Once 16ms timer is fired a queue of scheduled events is being executed to produc
 Server-side rendering in *Scrum* doesn't require any changes in UI components code, the API is the same. However it works differently under the hood when the code is executed in Clojure.
 
 Here's a list of the main differences from client-side:
-- reconciler accepts only one argument, a hash of subscriptions resolving functions
+- reconciler accepts a hash of subscriptions resolving functions and optional `:state` atom
 - subscriptions are resolved synchronously
 - controllers are not used
 - all dispatching functions are disabled
@@ -348,10 +348,12 @@ To understand what is *subscription resolving function* let's start with a small
 
 ```clojure
 ;; server only
-(let [r (scrum/reconciler resolvers)] ;; create reconciler
+(let [state (atom {})
+      r (scrum/reconciler {:state state
+                           :resolvers resolvers})] ;; create reconciler
   (->> (Counter r) ;; initialize components tree
        rum/render-html ;; render to HTML
-       (render-document @(:state r)))) ;; render into document template
+       (render-document @state))) ;; render into document template
 ```
 
 ```clojure
@@ -368,9 +370,9 @@ A value returned from resolving function is stored in `Resolver` instance which 
 
 **resolved data**
 
-In the above example you may have noticed `@(:state r)`. When rendering on server *Scrum* collects resolved data and provides application state in an atom behind `:state` key of the reconciler. This data should be rendered into HTML to rehydrate the app once it is initialized on the client-side.
+In the above example you may have noticed that we create `state` atom, pass it into reconciler and then dereference it once rendering is done. When rendering on server *Scrum* collects resolved data into an atom behind `:state` key of the reconciler, if the atom is provided. This data should be rendered into HTML to rehydrate the app once it is initialized on the client-side.
 
-*NOTE*: in order to retrieve resolved data reconciler's state should be dereferenced only after `rum/render-html` call.
+*NOTE*: in order to retrieve resolved data the atom should be dereferenced only after `rum/render-html` call.
 
 **synchronous subscriptions**
 
