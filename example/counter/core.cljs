@@ -4,12 +4,12 @@
             [goog.dom :as dom]))
 
 ;;
-;; define controller & action handlers
+;; define controller & event handlers
 ;;
 
 (def initial-state 0)
 
-(defmulti control (fn [action] action))
+(defmulti control (fn [event] event))
 
 (defmethod control :init []
   {:state initial-state})

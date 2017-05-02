@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [doseq]))
 
 (defmacro doseq
+  "Lightweight `doseq`"
   [[item coll] & body]
   `(let [coll# ~coll
          result# (cljs.core/array)]

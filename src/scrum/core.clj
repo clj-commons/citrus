@@ -4,7 +4,8 @@
 (defn reconciler
   "Accepts a hash of `:state` atom & `:resolvers` hash of subscription resolvers where keys are subscription path vectors and values are data resolving functions
 
-    {[:counter] fetch-counter}
+    {:state (atom {})
+     :resolvers {[:counter] fetch-counter}}
 
   Returns a hash of `resolvers` and `state` atom which will be populated with resolved subscriptions data during rendering"
   [{:keys [state resolvers]}]
@@ -30,15 +31,14 @@
 (defn subscription
   "Create a subscription to state updates
 
-    (scrum/subscription resolvers [:users 0] (juxt [:fname :lname]))
+    (scrum/subscription reconciler [:users 0] (juxt [:fname :lname]))
 
   Arguments
 
-    resolvers  - a map of resolvers
+    reconciler - reconciler hash
     path       - a vector which describes a path into resolver's result value
     reducer    - an aggregate function which computes a materialized view of data behind the path"
   ([reconciler path]
    (subscription reconciler path nil))
   ([{:keys [state resolvers]} path reducer]
    (r/make-resolver state resolvers path reducer)))
-

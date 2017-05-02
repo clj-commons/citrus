@@ -6,7 +6,8 @@
   "Creates an instance of Reconciler
 
     (scrum/reconciler {:state (atom {})
-                       :controllers {:counter counter}
+                       :controllers {:counter counter/control}
+                       :effect-handlers {:http effects/http}
                        :batched-updates f
                        :chunked-updates f})
 
@@ -15,6 +16,7 @@
     config              - a map of
       state             - app state atom
       controllers       - a hash of state controllers
+      effect-handlers   - a hash of effects handlers
       batched-updates   - a function used to batch reconciler updates, defaults to `js/requestAnimationFrame`
       chunked-updates   - a function used to divide reconciler update into chunks, doesn't used by default
 
@@ -32,7 +34,7 @@
     (:meta options)))
 
 (defn dispatch!
-  "Invoke an action on particular controller asynchronously
+  "Invoke an event on particular controller asynchronously
 
     (scrum/dispatch! reconciler :users :load \"id\")
 
@@ -40,13 +42,13 @@
 
     reconciler - an instance of Reconciler
     controller - name of a controller
-    action     - a dispatch value of a method defined in the controller
+    event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
-  [reconciler controller action & args]
-  (r/dispatch! reconciler controller action args))
+  [reconciler controller event & args]
+  (r/dispatch! reconciler controller event args))
 
 (defn dispatch-sync!
-  "Invoke an action on particular controller synchronously
+  "Invoke an event on particular controller synchronously
 
     (scrum/dispatch! reconciler :users :load \"id\")
 
@@ -54,36 +56,36 @@
 
     reconciler - an instance of Reconciler
     controller - name of a controller
-    action     - a dispatch value of a method defined in the controller
+    event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
-  [reconciler controller action & args]
-  (r/dispatch-sync! reconciler controller action args))
+  [reconciler controller event & args]
+  (r/dispatch-sync! reconciler controller event args))
 
 (defn broadcast!
-  "Invoke an action on all controllers asynchronously
+  "Invoke an event on all controllers asynchronously
 
     (scrum/broadcast! reconciler :init)
 
   Arguments
 
     reconciler - an instance of Reconciler
-    action     - a dispatch value of a method defined in the controller
+    event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
-  [reconciler action & args]
-  (r/broadcast! reconciler action args))
+  [reconciler event & args]
+  (r/broadcast! reconciler event args))
 
 (defn broadcast-sync!
-  "Invoke an action on all controllers synchronously
+  "Invoke an event on all controllers synchronously
 
     (scrum/broadcast! reconciler :init)
 
   Arguments
 
     reconciler - an instance of Reconciler
-    action     - a dispatch value of a method defined in the controller
+    event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
-  [reconciler action & args]
-  (r/broadcast-sync! reconciler action args))
+  [reconciler event & args]
+  (r/broadcast-sync! reconciler event args))
 
 
 (defn subscription

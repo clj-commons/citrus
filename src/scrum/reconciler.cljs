@@ -14,10 +14,10 @@
   (vreset! scheduled? (schedule! f)))
 
 (defprotocol IReconciler
-  (dispatch! [this controller action args])
-  (dispatch-sync! [this controller action args])
-  (broadcast! [this action args])
-  (broadcast-sync! [this action args]))
+  (dispatch! [this controller event args])
+  (dispatch-sync! [this controller event args])
+  (broadcast! [this event args])
+  (broadcast-sync! [this event args]))
 
 (deftype Reconciler [controllers effect-handlers state queue scheduled? batched-updates chunked-updates meta]
 
@@ -60,10 +60,10 @@
     (-write writer "]"))
 
   IReconciler
-  (dispatch! [this cname action args]
+  (dispatch! [this cname event args]
     (queue-effects!
       queue
-      [cname #((get controllers cname) action args (get @state cname))])
+      [cname #((get controllers cname) event args (get @state cname))])
 
     (schedule-update!
       batched-updates
@@ -88,8 +88,8 @@
                   (when-let [handler (get effect-handlers id)]
                     (handler this cname effect))))))))))
 
-  (dispatch-sync! [this cname action args]
-    (let [effects ((get controllers cname) action args (get @state cname))]
+  (dispatch-sync! [this cname event args]
+    (let [effects ((get controllers cname) event args (get @state cname))]
       (m/doseq [[id effect] effects]
         (let [handler (get effect-handlers id)]
           (cond
@@ -97,10 +97,10 @@
             handler (handler this cname effect)
             :else nil)))))
 
-  (broadcast! [this action args]
+  (broadcast! [this event args]
     (m/doseq [controller (keys controllers)]
-      (dispatch! this controller action args)))
+      (dispatch! this controller event args)))
 
-  (broadcast-sync! [this action args]
+  (broadcast-sync! [this event args]
     (m/doseq [controller (keys controllers)]
-      (dispatch-sync! this controller action args))))
+      (dispatch-sync! this controller event args))))
