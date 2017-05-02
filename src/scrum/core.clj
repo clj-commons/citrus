@@ -2,13 +2,13 @@
   (:require [scrum.resolver :as r]))
 
 (defn reconciler
-  "A hash of subscription resolvers where keys are subscription path vectors and values are data resolving functions
+  "Accepts an atom & a hash of subscription resolvers where keys are subscription path vectors and values are data resolving functions
 
     {[:counter] fetch-counter}
 
   Returns a hash of `resolvers` and `state` atom which will be populated with resolved subscriptions data during rendering"
-  [resolvers]
-  {:state (atom {})
+  [resolvers state]
+  {:state state
    :resolvers resolvers})
 
 (defn dispatch!

@@ -6,7 +6,8 @@
   (deref [_]
     (let [resolve (get resolvers path)
           data (resolve)]
-      (swap! state assoc-in path data)
+      (when state
+        (swap! state assoc-in path data))
       (if reducer
         (reducer data)
         data))))
