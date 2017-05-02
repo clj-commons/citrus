@@ -11,6 +11,7 @@
 
 - [Motivation](#motivation)
 - [Features](#features)
+- [Apps built with Scrum](#apps-built-with-scrum)
 - [Installation](#installation)
 - [Usage](#usage)
 - [How it works](#how-it-works)
@@ -46,6 +47,11 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 ⚡️ Async batched updates for better performance
 
 🚰 Server-side rendering with convenient state hydration
+
+## Apps built with Scrum
+
+- [Hacker News clone with server-side rendering](https://github.com/roman01la/scrum-ssr-example)
+- [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
 
