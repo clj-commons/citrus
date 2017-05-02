@@ -258,7 +258,7 @@ Handler function accepts three arguments: reconciler instance, the name key of t
 
 Notice how the above effect provides callback event names to handle HTTP response/error which are dispatched once request is done. This is a frequent pattern when it is expected that an effect can produce another one e.g. update state with response body.
 
-*NOTE*: `:state` is the only handler built into *Scrum*, because state change is always required operation.
+*NOTE*: `:state` is the only handler built into *Scrum*. Because state change is the most frequently used effect it is handled a bit differently, in efficient way (see [Scheduling and batching](#scheduling-and-batching) section).
 
 ### Subscriptions
 
