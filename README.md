@@ -215,10 +215,10 @@ An effect is key/value pair where the key is the name of the effect handler and 
   {:state initial-state})
 
 (defmethod control :inc [event args state]
-  {:state (update state :counter inc)})
+  {:state (inc state)})
 
 (defmethod control :dec [event args state]
-  {:state (update state :counter dec)})
+  {:state (dec state)})
 ```
 
 It's important to understand that `state` value that is passed in won't affect the whole state, but only the part corresponding to its associated key in the `:controllers` map of the reconciler.
