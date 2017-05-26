@@ -42,7 +42,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 
 🚀 Reactive queries
 
-📋 Side-effects are data
+📋 Side-effects are described as data
 
 ⚡️ Async batched updates for better performance
 
@@ -55,7 +55,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 
 ## Installation
 
-Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.1.0-SNAPSHOT"]`
+Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.2.0-SNAPSHOT"]`
 
 ## Usage
 
@@ -334,12 +334,12 @@ Once 16ms timer is fired a queue of scheduled events is being executed to produc
 Server-side rendering in *Scrum* doesn't require any changes in UI components code, the API is the same. However it works differently under the hood when the code is executed in Clojure.
 
 Here's a list of the main differences from client-side:
-- reconciler accepts a hash of subscriptions resolving functions and optional `:state` atom
+- reconciler accepts subscriptions resolving function and optional `:state` atom
 - subscriptions are resolved synchronously
 - controllers are not used
 - all dispatching functions are disabled
 
-**subscriptions resolvers**
+**subscriptions resolver**
 
 To understand what is *subscription resolving function* let's start with a small example:
 
@@ -356,7 +356,7 @@ To understand what is *subscription resolving function* let's start with a small
 ;; server only
 (let [state (atom {})
       r (scrum/reconciler {:state state
-                           :resolvers resolvers})] ;; create reconciler
+                           :resolvers resolver})] ;; create reconciler
   (->> (Counter r) ;; initialize components tree
        rum/render-html ;; render to HTML
        (render-document @state))) ;; render into document template
@@ -364,11 +364,13 @@ To understand what is *subscription resolving function* let's start with a small
 
 ```clojure
 ;; server only
-(def resolvers
-  {[:counter] (constantly 0)}) ;; [:counter] subscription resolving function
+(defmulti resolver (fn [[key]] key))
+
+(defmethod resolver :counter [_] ;; [:counter] subscription resolving function
+  0)
 ```
 
-From the above code snippet it's clear that `resolvers` is a hash map from subscription path, that is used when creating a subscription in UI components, to a function that returns a value. Normally resolving functions would access database or any other data source used on the backend.
+`resolver` is a function or a multimethod, which is being called by Scrum's subscriptions when rendering on server. Resolver function receives subscription path vector that is defined when creating a subscription. Normally resolving function would access database or any other data source used on the backend. While it's fine to use a function, we recommend to use a multimethod since it is a good abstraction for decoupling data resolvers.
 
 **resolver**
 
@@ -388,6 +390,7 @@ Every subscription created inside of components that are being rendered triggers
 
 - Pass the reconciler explicity from parent components to children. Since it is a reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer to do it _Redux-way_, you can use context in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
 - Set up the initial state value by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
+- Use a multimethod as resolver function when rendering on server.
 
 ## Testing
 
