@@ -109,7 +109,7 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.2.0-SNAPSHOT"]`
     (case method
       :set (js/localStorage.setItem (name key) data)
       :get (->> (js/localStorage.getItem (name key))
-                (scrum/dispatch reconciler controller-name on-read))
+                (scrum/dispatch! reconciler controller-name on-read))
       nil)))
 
 
