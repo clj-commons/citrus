@@ -387,6 +387,7 @@ In the above example you may have noticed that we create `state` atom, pass it i
 Every subscription created inside of components that are being rendered triggers corresponding resolving function which blocks rendering until a value is returned. The downside is that the more subscriptions there are down the components tree, the more time it will take to render the whole app. On the other hand it makes it possible to both render and retrieve state in one render pass. To reduce rendering time make sure you don't have too much subscriptions in components tree. Usually it's enough to have one or two in root component for every route.
 
 **request bound caching**
+
 If you have multiple subscriptions to same data source in UI tree you'll see that data is also fetched multiple times when rendering on server. To reduce database access load it's recommended to reuse data from resolved subscriptions. Here's an implementation of a simple cache:
 
 ```clojure
