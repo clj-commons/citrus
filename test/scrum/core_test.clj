@@ -4,7 +4,7 @@
 
 (deftest reconciler
   (testing "Should return Reconciler hash"
-    (let [r (scrum/reconciler {})]
+    (let [r (scrum/reconciler {:state (atom {}) :resolvers {}})]
       (is (contains? r :state))
       (is (contains? r :resolvers))
       (is (instance? clojure.lang.Atom (:state r)))

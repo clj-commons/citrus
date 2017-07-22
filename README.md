@@ -50,16 +50,13 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 🚰 Server-side rendering with convenient state hydration
 
 ## Apps built with Scrum
-
 - [Hacker News clone with server-side rendering](https://github.com/roman01la/scrum-ssr-example)
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
-
-Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.2.0-SNAPSHOT"]`
+Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.3.0-SNAPSHOT"]`
 
 ## Usage
-
 ```clojure
 (ns counter.core
   (:require [rum.core :as rum]
@@ -148,7 +145,6 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.2.0-SNAPSHOT"]`
 ```
 
 ## How it works
-
 With _Scrum_ you build everything around a well known architecture pattern in modern SPA development:
 
 📦 *Model application state* (with `reconciler`)
@@ -164,7 +160,6 @@ With _Scrum_ you build everything around a well known architecture pattern in mo
 ✨ *Render* (automatic & efficient ! profit :+1:)
 
 ### Reconciler
-
 Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of application state, handles events, side effects and subscriptions, and performs async batched updates (via `requestAnimationFrame`):
 
 ```clojure
@@ -174,12 +169,10 @@ Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of app
                      :effect-handlers {:http http}}))
 ```
 
-**:state**
-
+#### :state
 The value at the `:state` key is the initial state of the reconciler represented as an atom which holds a hash map. The atom is created and passed explicitly.
 
-**:controllers**
-
+#### :controllers
 The value at the `:controllers` key is a hash map from controller name to controller function. The controller stores its state in reconciler's `:state` atom at the key which is the name of the controller in `:controllers` hash map. That is, the keys in `:controllers` are reflected in the `:state` atom. This is where modeling state happens and application domains keep separated.
 
 Usually controllers are initialized with a predefined initial state value by dispatching `:init` event.
@@ -188,8 +181,7 @@ Usually controllers are initialized with a predefined initial state value by dis
 - it separates setup of the reconciler from initialization phase, because initialization could happen in several ways (hardcoded, read from global JSON/Transit data rendered into HTML from the server, user event, etc.)
 - allows setting a global watcher on the atom for ad-hoc stuff outside of the normal _Scrum_ cycle for maximum flexibility
 
-**:effect-handlers**
-
+#### :effect-handlers
 The value at the `:effect-handlers` key is a hash map of side effect handlers. Handler function asynchronously performs impure computations such as state change, HTTP request, etc. The only built-in effects handler is `:state`, everything else should be implemented and provided by user.
 
 ### Dispatching events
@@ -304,11 +296,9 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 ```
 
 ### Scheduling and batching
-
 This section describes how effects execution works in *Scrum*. It is considered an advanced topic and is not necessary to read to start working with *Scrum*.
 
-**Scheduling**
-
+#### Scheduling
 Events dispatched using `scrum/dispatch!` are always executed asynchronously. Execution is scheduled via `requestAnimationFrame` meaning that events that where dispatched in 16ms timeframe will be executed sequentially by the end of this time.
 
 ```clojure
@@ -316,8 +306,7 @@ Events dispatched using `scrum/dispatch!` are always executed asynchronously. Ex
 ;; 0ms            16ms
 ```
 
-**Batching**
-
+#### Batching
 Once 16ms timer is fired a queue of scheduled events is being executed to produce a sequence of effects. This sequence is then divided into two: state updates and other side effects. First, state updates are executed in a single `swap!`, which triggers only one re-render, and after that other effects are being executed.
 
 ```clojure
@@ -331,17 +320,15 @@ Once 16ms timer is fired a queue of scheduled events is being executed to produc
 ```
 
 ### Server-side rendering
-
 Server-side rendering in *Scrum* doesn't require any changes in UI components code, the API is the same. However it works differently under the hood when the code is executed in Clojure.
 
 Here's a list of the main differences from client-side:
-- reconciler accepts subscriptions resolving function and optional `:state` atom
+- reconciler accepts a hash of subscriptions resolvers and optional `:state` atom
 - subscriptions are resolved synchronously
 - controllers are not used
 - all dispatching functions are disabled
 
-**subscriptions resolver**
-
+#### Subscriptions resolvers
 To understand what is *subscription resolving function* let's start with a small example:
 
 ```clojure
@@ -357,7 +344,7 @@ To understand what is *subscription resolving function* let's start with a small
 ;; server only
 (let [state (atom {})
       r (scrum/reconciler {:state state
-                           :resolvers resolver})] ;; create reconciler
+                           :resolvers resolvers})] ;; create reconciler
   (->> (Counter r) ;; initialize components tree
        rum/render-html ;; render to HTML
        (render-document @state))) ;; render into document template
@@ -365,34 +352,28 @@ To understand what is *subscription resolving function* let's start with a small
 
 ```clojure
 ;; server only
-(defmulti resolver (fn [[key]] key))
-
-(defmethod resolver :counter [_] ;; [:counter] subscription resolving function
-  0)
+(def resolvers
+  {:counter (constantly 0)}) ;; :counter subscription resolving function
 ```
 
-`resolver` is a function or a multimethod, which is being called by Scrum's subscriptions when rendering on server. Resolver function receives subscription path vector that is defined when creating a subscription. Normally resolving function would access database or any other data source used on the backend. While it's fine to use a function, we recommend to use a multimethod since it is a good abstraction for decoupling data resolvers.
+`resolver` is a hash map from subscription path's top level key, that is used when creating a subscription in UI components, to a function that returns a value. Normally a resolver would access database or any other data source used on the backend.
 
-**resolver**
-
+#### Resolver
 A value returned from resolving function is stored in `Resolver` instance which is atom-like type that is used under the hood in subscriptions.
 
-**resolved data**
-
+#### Resolved data
 In the above example you may have noticed that we create `state` atom, pass it into reconciler and then dereference it once rendering is done. When rendering on server *Scrum* collects resolved data into an atom behind `:state` key of the reconciler, if the atom is provided. This data should be rendered into HTML to rehydrate the app once it is initialized on the client-side.
 
 *NOTE*: in order to retrieve resolved data the atom should be dereferenced only after `rum/render-html` call.
 
-**synchronous subscriptions**
-
+#### Synchronous subscriptions
 Every subscription created inside of components that are being rendered triggers corresponding resolving function which blocks rendering until a value is returned. The downside is that the more subscriptions there are down the components tree, the more time it will take to render the whole app. On the other hand it makes it possible to both render and retrieve state in one render pass. To reduce rendering time make sure you don't have too much subscriptions in components tree. Usually it's enough to have one or two in root component for every route.
 
-**request bound caching**
-
+#### Request bound caching
 If you have multiple subscriptions to same data source in UI tree you'll see that data is also fetched multiple times when rendering on server. To reduce database access load it's recommended to reuse data from resolved subscriptions. Here's an implementation of a simple cache:
 
 ```clojure
-(defn make-resolvers [resolver req]
+(defn resolve [resolver req]
   (let [cache (volatile! {})] ;; cache
     (fn [[key & p :as path]]
       (if-let [data (get-in @cache path)] ;; cache hit
@@ -400,6 +381,29 @@ If you have multiple subscriptions to same data source in UI tree you'll see tha
         (let [data (resolver [key] req)] ;; cache miss, resolve subscription
           (vswap! cache assoc key data) ;; cache data
           (get-in data p))))))
+```
+
+#### Managing resolvers at runtime
+If you want to display different data based on certain condition, such as user role or A/B testing, it is useful to have predefined set of resolvers for every of those cases. Based on those conditions a web server can construct different resolver maps to display appropriate data.
+
+```clojure
+;; resolvers
+(def common
+  {:thirdparty-ads get-ads
+   :promoted-products get-promoted})
+   
+(def anonymous-user
+  {:top-products get-top-products})
+  
+(def returning-user
+  {:suggested-products get-suggested-products})
+
+;; conditional resolver construction
+(defn make-resolver [req]
+  (cond
+    (anonymous? req) (merge common anonymous-user)
+    (returning? req) (merge comomn returning-user)
+    :else common))
 ```
 
 ## Best practices

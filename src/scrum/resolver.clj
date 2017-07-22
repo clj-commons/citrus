@@ -4,12 +4,14 @@
 
   clojure.lang.IDeref
   (deref [_]
-    (let [data (resolver path)]
+    (let [[key & path] path
+          resolve (get resolver key)
+          data (resolve)]
       (when state
-        (swap! state assoc-in path data))
+        (swap! state assoc key data))
       (if reducer
-        (reducer data)
-        data)))
+        (-> data reducer (get-in path))
+        (get-in data path))))
 
   clojure.lang.IRef
   (setValidator [this vf]
