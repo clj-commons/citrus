@@ -405,7 +405,6 @@ If you have multiple subscriptions to same data source in UI tree you'll see tha
 
 - Pass the reconciler explicity from parent components to children. Since it is a reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer to do it _Redux-way_, you can use context in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
 - Set up the initial state value by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
-- Use a multimethod as resolver function when rendering on server.
 
 ## Testing
 
