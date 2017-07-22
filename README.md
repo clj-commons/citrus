@@ -23,6 +23,7 @@
   - [Scheduling and batching](#scheduling-and-batching)
   - [Server-side rendering](#server-side-rendering)
 - [Best practices](#best-practices)
+- [FAQ](#faq)
 - [Testing](#testing)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
@@ -405,6 +406,12 @@ If you have multiple subscriptions to same data source in UI tree you'll see tha
 
 - Pass the reconciler explicity from parent components to children. Since it is a reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer to do it _Redux-way_, you can use context in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
 - Set up the initial state value by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
+
+## FAQ
+
+> Passing reconciler explicitely is annoying and makes components impossible to reuse since they depend on reconciler. Can I use DI via React context to avoid this?
+
+Yes, you can. But keep in mind that there's nothing more straightforward and simpler to understand than data passed as arguments explicitely. The argument on reusability is simply not true. If you think about it, reusable components are always leaf nodes in UI tree and everything above them is application specific UI. Those leaf components doesn't need to know about reconciler, they should provide an API which should be used by application specific components that depend on reconciler and pass in data of callbacks that interact with reconciler.
 
 ## Testing
 
