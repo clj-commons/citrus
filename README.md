@@ -409,9 +409,9 @@ If you have multiple subscriptions to same data source in UI tree you'll see tha
 
 ## FAQ
 
-> Passing reconciler explicitely is annoying and makes components impossible to reuse since they depend on reconciler. Can I use DI via React context to avoid this?
+> Passing reconciler explicitly is annoying and makes components impossible to reuse since they depend on reconciler. Can I use DI via React context to avoid this?
 
-Yes, you can. But keep in mind that there's nothing more straightforward and simpler to understand than data passed as arguments explicitely. The argument on reusability is simply not true. If you think about it, reusable components are always leaf nodes in UI tree and everything above them is application specific UI. Those leaf components doesn't need to know about reconciler, they should provide an API which should be used by application specific components that depend on reconciler and pass in data of callbacks that interact with reconciler.
+Yes, you can. But keep in mind that there's nothing more straightforward and simpler to understand than data passed as arguments explicitly. The argument on reusability is simply not true. If you think about it, reusable components are always leaf nodes in UI tree and everything above them is application specific UI. Those leaf components doesn't need to know about reconciler, they should provide an API which should be used by application specific components that depend on reconciler and pass in data and callbacks that interact with reconciler.
 
 ## Testing
 
