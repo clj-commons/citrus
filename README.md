@@ -476,9 +476,9 @@ Testing state management logic in *Scrum* is really simple. Here's what can be t
 
 ## Roadmap
 - <strike>Get rid of global state</strike>
-- Make scrum isomorphic (in progress, see [this issue](https://github.com/roman01la/scrum/issues/3))
+- <strike>Make scrum isomorphic</strike>
 - Storage agnostic architecture? (Atom, DataScript, etc.)
-- Better effects handling (network, localStorage, etc.) (in progress, see [this issue](https://github.com/roman01la/scrum/issues/7))
+- <strike>Better effects handling (network, localStorage, etc.)</strike>
 - Provide better developer experience using `clojure.spec`
 
 ## Contributing
