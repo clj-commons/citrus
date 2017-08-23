@@ -1,4 +1,4 @@
-(defproject org.roman01la/citrus "2.3.0-SNAPSHOT"
+(defproject org.roman01la/citrus "3.0.0"
   :description "State Coordination for Rum"
   :url "https://github.com/roman01la/citrus"
   :license {:name "Eclipse Public License"
