@@ -1,15 +1,15 @@
-(ns scrum.core
-  (:require [scrum.reconciler :as r]
-            [scrum.cursor :as c]))
+(ns citrus.core
+  (:require [citrus.reconciler :as r]
+            [citrus.cursor :as c]))
 
 (defn reconciler
   "Creates an instance of Reconciler
 
-    (scrum/reconciler {:state (atom {})
-                       :controllers {:counter counter/control}
-                       :effect-handlers {:http effects/http}
-                       :batched-updates f
-                       :chunked-updates f})
+    (citrus/reconciler {:state (atom {})
+                        :controllers {:counter counter/control}
+                        :effect-handlers {:http effects/http}
+                        :batched-updates f
+                        :chunked-updates f})
 
   Arguments
 
@@ -36,7 +36,7 @@
 (defn dispatch!
   "Invoke an event on particular controller asynchronously
 
-    (scrum/dispatch! reconciler :users :load \"id\")
+    (citrus/dispatch! reconciler :users :load \"id\")
 
   Arguments
 
@@ -50,7 +50,7 @@
 (defn dispatch-sync!
   "Invoke an event on particular controller synchronously
 
-    (scrum/dispatch! reconciler :users :load \"id\")
+    (citrus/dispatch! reconciler :users :load \"id\")
 
   Arguments
 
@@ -64,7 +64,7 @@
 (defn broadcast!
   "Invoke an event on all controllers asynchronously
 
-    (scrum/broadcast! reconciler :init)
+    (citrus/broadcast! reconciler :init)
 
   Arguments
 
@@ -77,7 +77,7 @@
 (defn broadcast-sync!
   "Invoke an event on all controllers synchronously
 
-    (scrum/broadcast! reconciler :init)
+    (citrus/broadcast! reconciler :init)
 
   Arguments
 
@@ -91,7 +91,7 @@
 (defn subscription
   "Create a subscription to state updates
 
-    (scrum/subscription reconciler [:users 0] (juxt [:fname :lname]))
+    (citrus/subscription reconciler [:users 0] (juxt [:fname :lname]))
 
   Arguments
 

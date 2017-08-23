@@ -1,6 +1,6 @@
-(defproject org.roman01la/scrum "2.3.0-SNAPSHOT"
+(defproject org.roman01la/citrus "2.3.0-SNAPSHOT"
   :description "State Coordination for Rum"
-  :url "https://github.com/roman01la/scrum"
+  :url "https://github.com/roman01la/citrus"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0" :scope "provided"]

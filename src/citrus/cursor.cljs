@@ -1,4 +1,4 @@
-(ns scrum.cursor
+(ns citrus.cursor
   (:require [goog.object :as gobj]))
 
 (deftype ReduceCursor [ref path reducer meta]
@@ -40,7 +40,7 @@
 
   IPrintWithWriter
   (-pr-writer [this writer opts]
-    (-write writer "#object [scrum.cursor.ReduceCursor ")
+    (-write writer "#object [citrus.cursor.ReduceCursor ")
     (pr-writer {:val (-deref this)} writer opts)
     (-write writer "]")))
 
@@ -49,7 +49,7 @@
    that can be used separately from main atom, but only for reading value:
 
      (def state (atom {:users {\"Ivan\" {:children [1 2 3]}}}))
-     (def ivan (scrum.cursor/reduce-cursor-in state [:users \"Ivan\" :children] last))
+     (def ivan (citrus.cursor/reduce-cursor-in state [:users \"Ivan\" :children] last))
      (deref ivan) ;; => 3
 
   Returned value supports deref, watches and metadata.

@@ -1,10 +1,10 @@
-(ns scrum.resolver-test
+(ns citrus.resolver-test
   (:require [clojure.test :refer :all]
-            [scrum.resolver :as resolver]))
+            [citrus.resolver :as resolver]))
 
 (deftest make-resolver
   (testing "Should return Resolver instance"
-    (is (instance? scrum.resolver.Resolver
+    (is (instance? citrus.resolver.Resolver
                    (resolver/make-resolver (atom {}) {} [:path] identity)))))
 
 (deftest Resolver

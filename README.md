@@ -1,17 +1,17 @@
-<img src="logo.png" width="251" height="36" alt="scrum logo" />
+<img src="logo.png" width="251" height="36" alt="citrus logo" />
 
 *State Coordination for [Rum](https://github.com/tonsky/rum/)*
 
 <a href="http://clojurians.net/">
   <img src="slack.png" width="64" height="64" />
-  <span>Discuss on Slack #scrum</span>
+  <span>Discuss on Slack #citrus</span>
 </a>
 
 ## Table of Contents
 
 - [Motivation](#motivation)
 - [Features](#features)
-- [Apps built with Scrum](#apps-built-with-scrum)
+- [Apps built with Citrus](#apps-built-with-citrus)
 - [Installation](#installation)
 - [Usage](#usage)
 - [How it works](#how-it-works)
@@ -49,18 +49,18 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 
 🚰 Server-side rendering with convenient state hydration
 
-## Apps built with Scrum
-- [Hacker News clone with server-side rendering](https://github.com/roman01la/scrum-ssr-example)
+## Apps built with Citrus
+- [Hacker News clone with server-side rendering](https://github.com/roman01la/citrus-ssr-example)
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
-Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.3.0-SNAPSHOT"]`
+Add to *project.clj* / *build.boot*: `[org.roman01la/citrus "2.3.0-SNAPSHOT"]`
 
 ## Usage
 ```clojure
 (ns counter.core
   (:require [rum.core :as rum]
-            [scrum.core :as scrum]))
+            [citrus.core :as citrus]))
 
 ;;
 ;; define controller & event handlers
@@ -107,7 +107,7 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.3.0-SNAPSHOT"]`
     (case method
       :set (js/localStorage.setItem (name key) data)
       :get (->> (js/localStorage.getItem (name key))
-                (scrum/dispatch! reconciler controller-name on-read))
+                (citrus/dispatch! reconciler controller-name on-read))
       nil)))
 
 
@@ -117,9 +117,9 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.3.0-SNAPSHOT"]`
 
 (rum/defc Counter < rum/reactive [r]
   [:div
-   [:button {:on-click #(scrum/dispatch! r :counter :dec)} "-"]
-   [:span (rum/react (scrum/subscription r [:counter]))]
-   [:button {:on-click #(scrum/dispatch! r :counter :inc)} "+"]])
+   [:button {:on-click #(citrus/dispatch! r :counter :dec)} "-"]
+   [:span (rum/react (citrus/subscription r [:counter]))]
+   [:button {:on-click #(citrus/dispatch! r :counter :inc)} "+"]])
 
 
 ;;
@@ -128,7 +128,7 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.3.0-SNAPSHOT"]`
 
 ;; create Reconciler instance
 (defonce reconciler
-  (scrum/reconciler
+  (citrus/reconciler
     {:state
      (atom {}) ;; application state
      :controllers
@@ -137,7 +137,7 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.3.0-SNAPSHOT"]`
      {:local-storage local-storage}})) ;; effect handlers
 
 ;; initialize controllers
-(defonce init-ctrl (scrum/broadcast-sync! reconciler :init))
+(defonce init-ctrl (citrus/broadcast-sync! reconciler :init))
 
 ;; render
 (rum/mount (Counter reconciler)
@@ -145,7 +145,7 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/scrum "2.3.0-SNAPSHOT"]`
 ```
 
 ## How it works
-With _Scrum_ you build everything around a well known architecture pattern in modern SPA development:
+With _Citrus_ you build everything around a well known architecture pattern in modern SPA development:
 
 📦 *Model application state* (with `reconciler`)
 
@@ -160,13 +160,13 @@ With _Scrum_ you build everything around a well known architecture pattern in mo
 ✨ *Render* (automatic & efficient ! profit :+1:)
 
 ### Reconciler
-Reconciler is the core of _Scrum_. An instance of `Reconciler` takes care of application state, handles events, side effects and subscriptions, and performs async batched updates (via `requestAnimationFrame`):
+Reconciler is the core of _Citrus_. An instance of `Reconciler` takes care of application state, handles events, side effects and subscriptions, and performs async batched updates (via `requestAnimationFrame`):
 
 ```clojure
 (defonce reconciler
-  (scrum/reconciler {:state (atom {})
-                     :controllers {:counter control}
-                     :effect-handlers {:http http}}))
+  (citrus/reconciler {:state (atom {})
+                      :controllers {:counter control}
+                      :effect-handlers {:http http}}))
 ```
 
 #### :state
@@ -177,9 +177,9 @@ The value at the `:controllers` key is a hash map from controller name to contro
 
 Usually controllers are initialized with a predefined initial state value by dispatching `:init` event.
 
-*NOTE*: the `:init` event pattern isn't enforced at all in _Scrum_, but we consider it is a good idea for 2 reasons:
+*NOTE*: the `:init` event pattern isn't enforced at all in _Citrus_, but we consider it is a good idea for 2 reasons:
 - it separates setup of the reconciler from initialization phase, because initialization could happen in several ways (hardcoded, read from global JSON/Transit data rendered into HTML from the server, user event, etc.)
-- allows setting a global watcher on the atom for ad-hoc stuff outside of the normal _Scrum_ cycle for maximum flexibility
+- allows setting a global watcher on the atom for ad-hoc stuff outside of the normal _Citrus_ cycle for maximum flexibility
 
 #### :effect-handlers
 The value at the `:effect-handlers` key is a hash map of side effect handlers. Handler function asynchronously performs impure computations such as state change, HTTP request, etc. The only built-in effects handler is `:state`, everything else should be implemented and provided by user.
@@ -189,15 +189,15 @@ The value at the `:effect-handlers` key is a hash map of side effect handlers. H
 Dispatched events communicate intention to perform a side effect, whether it is updating the state or performing a network request. By default effects are executed asynchronously, use `dispatch-sync!` when synchronous execution is required:
 
 ```clojure
-(scrum.core/dispatch! reconciler :controller-name :event-name &args)
-(scrum.core/dispatch-sync! reconciler :controller-name :event-name &args)
+(citrus.core/dispatch! reconciler :controller-name :event-name &args)
+(citrus.core/dispatch-sync! reconciler :controller-name :event-name &args)
 ```
 
 `broadcast!` and its synchronous counterpart `broadcast-sync!` should be used to broadcast an event to all controllers:
 
 ```clojure
-(scrum.core/broadcast! reconciler :event-name &args)
-(scrum.core/broadcast-sync! reconciler :event-name &args)
+(citrus.core/broadcast! reconciler :event-name &args)
+(citrus.core/broadcast-sync! reconciler :event-name &args)
 ```
 
 ### Handling events
@@ -224,7 +224,7 @@ It's important to understand that `state` value that is passed in won't affect t
 
 ### Side effects
 
-A side effect is an impure computation e.g. state mutation, HTTP request, storage access, etc. Because handling side effects is inconvenient and usually leads to cumbersome code, this operation is pushed outside of user code. In *Scrum* you don't perform effects directly in controllers. Instead controller methods return a hash map of effects represented as data. In every entry of the map the key is a name of the corresponding effects handler and the value is a description of the effect.
+A side effect is an impure computation e.g. state mutation, HTTP request, storage access, etc. Because handling side effects is inconvenient and usually leads to cumbersome code, this operation is pushed outside of user code. In *Citrus* you don't perform effects directly in controllers. Instead controller methods return a hash map of effects represented as data. In every entry of the map the key is a name of the corresponding effects handler and the value is a description of the effect.
 
 Here's an example of an effect that describes HTTP request:
 
@@ -243,15 +243,15 @@ And corresponding handler function:
 (defn http [reconciler ctrl-name effect]
   (let [{:keys [on-success on-error]} effect]
     (-> (fetch effect)
-        (then #(scrum/dispatch! reconciler ctrl-name on-success %))
-        (catch #(scrum/dispatch! reconciler ctrl-name on-error %)))))
+        (then #(citrus/dispatch! reconciler ctrl-name on-success %))
+        (catch #(citrus/dispatch! reconciler ctrl-name on-error %)))))
 ```
 
 Handler function accepts three arguments: reconciler instance, the name key of the controller which produced the effect and the effect value itself.
 
 Notice how the above effect provides callback event names to handle HTTP response/error which are dispatched once request is done. This is a frequent pattern when it is expected that an effect can produce another one e.g. update state with response body.
 
-*NOTE*: `:state` is the only handler built into *Scrum*. Because state change is the most frequently used effect it is handled a bit differently, in efficient way (see [Scheduling and batching](#scheduling-and-batching) section).
+*NOTE*: `:state` is the only handler built into *Citrus*. Because state change is the most frequently used effect it is handled a bit differently, in efficient way (see [Scheduling and batching](#scheduling-and-batching) section).
 
 ### Subscriptions
 
@@ -262,22 +262,22 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 ```clojure
 ;; normal subscription
 (defn fname [reconciler]
-  (scrum.core/subscription reconciler [:users 0 :fname]))
+  (citrus.core/subscription reconciler [:users 0 :fname]))
 
 ;; a subscription with aggregate function
 (defn full-name [reconciler]
-  (scrum.core/subscription reconciler [:users 0] #(str (:fname %) " " (:lname %))))
+  (citrus.core/subscription reconciler [:users 0] #(str (:fname %) " " (:lname %))))
 
 ;; parameterized subscription
 (defn user [reconciler id]
-  (scrum.core/subscription reconciler [:users id]))
+  (citrus.core/subscription reconciler [:users id]))
 
 ;; aggregate subscription
 (defn discount [reconciler]
-  (scrum.core/subscription reconciler [:user :discount]))
+  (citrus.core/subscription reconciler [:user :discount]))
 
 (defn goods [reconciler]
-  (scrum.core/subscription reconciler [:goods :selected]))
+  (citrus.core/subscription reconciler [:goods :selected]))
 
 (defn shopping-cart [reconciler]
   (rum/derived-atom [(discount reconciler) (goods reconciler)] ::key
@@ -296,10 +296,10 @@ Actual subscription happens in Rum component via `rum/reactive` mixin and `rum/r
 ```
 
 ### Scheduling and batching
-This section describes how effects execution works in *Scrum*. It is considered an advanced topic and is not necessary to read to start working with *Scrum*.
+This section describes how effects execution works in *Citrus*. It is considered an advanced topic and is not necessary to read to start working with *Citrus*.
 
 #### Scheduling
-Events dispatched using `scrum/dispatch!` are always executed asynchronously. Execution is scheduled via `requestAnimationFrame` meaning that events that where dispatched in 16ms timeframe will be executed sequentially by the end of this time.
+Events dispatched using `citrus/dispatch!` are always executed asynchronously. Execution is scheduled via `requestAnimationFrame` meaning that events that where dispatched in 16ms timeframe will be executed sequentially by the end of this time.
 
 ```clojure
 ;; |--×-×---×---×--|---
@@ -320,7 +320,7 @@ Once 16ms timer is fired a queue of scheduled events is being executed to produc
 ```
 
 ### Server-side rendering
-Server-side rendering in *Scrum* doesn't require any changes in UI components code, the API is the same. However it works differently under the hood when the code is executed in Clojure.
+Server-side rendering in *Citrus* doesn't require any changes in UI components code, the API is the same. However it works differently under the hood when the code is executed in Clojure.
 
 Here's a list of the main differences from client-side:
 - reconciler accepts a hash of subscriptions resolvers and optional `:state` atom
@@ -335,15 +335,15 @@ To understand what is *subscription resolving function* let's start with a small
 ;; used in both Clojure & ClojureScript
 (rum/defc Counter < rum/reactive [r]
   [:div
-   [:button {:on-click #(scrum/dispatch! r :counter :dec)} "-"]
-   [:span (rum/react (scrum/subscription r [:counter]))]
-   [:button {:on-click #(scrum/dispatch! r :counter :inc)} "+"]])
+   [:button {:on-click #(citrus/dispatch! r :counter :dec)} "-"]
+   [:span (rum/react (citrus/subscription r [:counter]))]
+   [:button {:on-click #(citrus/dispatch! r :counter :inc)} "+"]])
 ```
 
 ```clojure
 ;; server only
 (let [state (atom {})
-      r (scrum/reconciler {:state state
+      r (citrus/reconciler {:state state
                            :resolvers resolvers})] ;; create reconciler
   (->> (Counter r) ;; initialize components tree
        rum/render-html ;; render to HTML
@@ -362,7 +362,7 @@ To understand what is *subscription resolving function* let's start with a small
 A value returned from resolving function is stored in `Resolver` instance which is atom-like type that is used under the hood in subscriptions.
 
 #### Resolved data
-In the above example you may have noticed that we create `state` atom, pass it into reconciler and then dereference it once rendering is done. When rendering on server *Scrum* collects resolved data into an atom behind `:state` key of the reconciler, if the atom is provided. This data should be rendered into HTML to rehydrate the app once it is initialized on the client-side.
+In the above example you may have noticed that we create `state` atom, pass it into reconciler and then dereference it once rendering is done. When rendering on server *Citrus* collects resolved data into an atom behind `:state` key of the reconciler, if the atom is provided. This data should be rendered into HTML to rehydrate the app once it is initialized on the client-side.
 
 *NOTE*: in order to retrieve resolved data the atom should be dereferenced only after `rum/render-html` call.
 
@@ -419,11 +419,11 @@ Yes, you can. But keep in mind that there's nothing more straightforward and sim
 
 ## Testing
 
-Testing state management logic in *Scrum* is really simple. Here's what can be tested:
+Testing state management logic in *Citrus* is really simple. Here's what can be tested:
 - controllers output (effects)
 - state changes
 
-*NOTE:* Using synchronous dispatch `scrum.core/dispatch-sync!` makes it easier to test state updates.
+*NOTE:* Using synchronous dispatch `citrus.core/dispatch-sync!` makes it easier to test state updates.
 
 ```clojure
 (ns app.controllers.counter)
@@ -443,13 +443,13 @@ Testing state management logic in *Scrum* is really simple. Here's what can be t
 ```clojure
 (ns app.test.controllers.counter-test
   (:require [clojure.test :refer :all]
-            [scrum.core :as scrum]
+            [citrus.core :as citrus]
             [app.controllers.counter :as counter]))
 
 (def state (atom {}))
 
 (def r
-  (scrum/reconciler
+  (citrus/reconciler
     {:state state
      :controllers
      {:counter counter/control}}))
@@ -464,19 +464,19 @@ Testing state management logic in *Scrum* is really simple. Here's what can be t
 
 (deftest counter-state
   (testing "Should initialize state value with 0"
-    (scrum/dispatch-sync! r :counter :init 0)
+    (citrus/dispatch-sync! r :counter :init 0)
     (is (zero? (:counter @state))))
   (testing "Should increment state value"
-    (scrum/dispatch-sync! r :counter :inc)
+    (citrus/dispatch-sync! r :counter :inc)
     (is (= (:counter @state) 1)))
   (testing "Should deccrement state value"
-    (scrum/dispatch-sync! r :counter :dec)
+    (citrus/dispatch-sync! r :counter :dec)
     (is (= (:counter @state) 0))))
 ```
 
 ## Roadmap
 - <strike>Get rid of global state</strike>
-- <strike>Make scrum isomorphic</strike>
+- <strike>Make citrus isomorphic</strike>
 - Storage agnostic architecture? (Atom, DataScript, etc.)
 - <strike>Better effects handling (network, localStorage, etc.)</strike>
 - Provide better developer experience using `clojure.spec`

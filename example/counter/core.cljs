@@ -1,6 +1,6 @@
 (ns counter.core
   (:require [rum.core :as rum]
-            [scrum.core :as scrum]
+            [citrus.core :as citrus]
             [goog.dom :as dom]))
 
 ;;
@@ -48,9 +48,9 @@
 
 (rum/defc Counter < rum/reactive [r]
   [:div
-   [:button {:on-click #(scrum/dispatch! r :counter :dec)} "-"]
-   [:span (rum/react (scrum/subscription r [:counter]))]
-   [:button {:on-click #(scrum/dispatch! r :counter :inc)} "+"]])
+   [:button {:on-click #(citrus/dispatch! r :counter :dec)} "-"]
+   [:span (rum/react (citrus/subscription r [:counter]))]
+   [:button {:on-click #(citrus/dispatch! r :counter :inc)} "+"]])
 
 
 ;;
@@ -62,7 +62,7 @@
     :get
     (->> (name key)
          js/localStorage.getItem
-         (scrum/dispatch! r c on-success))
+         (citrus/dispatch! r c on-success))
     :set
     (-> (name key)
         (js/localStorage.setItem value))))
@@ -74,16 +74,16 @@
 
 ;; create Reconciler instance
 (defonce reconciler
-  (scrum/reconciler
+  (citrus/reconciler
     {:state (atom {})
      :controllers {:counter control}
      :effect-handlers {:local-storage local-storage}}))
 
 ;; initialize controllers
-(defonce init-ctrl (scrum/broadcast-sync! reconciler :init))
+(defonce init-ctrl (citrus/broadcast-sync! reconciler :init))
 
 ;; load from localStorage
-(defonce load (scrum/dispatch-sync! reconciler :counter :load :count))
+(defonce load (citrus/dispatch-sync! reconciler :counter :load :count))
 
 ;; render
 (rum/mount (Counter reconciler)

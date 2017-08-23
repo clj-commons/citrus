@@ -1,5 +1,5 @@
-(ns scrum.reconciler
-  (:require-macros [scrum.macros :as m]))
+(ns citrus.reconciler
+  (:require-macros [citrus.macros :as m]))
 
 (defn- queue-effects! [queue f]
   (vswap! queue conj f))
@@ -55,7 +55,7 @@
 
   IPrintWithWriter
   (-pr-writer [this writer opts]
-    (-write writer "#object [scrum.reconciler.Reconciler ")
+    (-write writer "#object [citrus.reconciler.Reconciler ")
     (pr-writer {:val (-deref this)} writer opts)
     (-write writer "]"))
 

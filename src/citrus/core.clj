@@ -1,5 +1,5 @@
-(ns scrum.core
-  (:require [scrum.resolver :as r]))
+(ns citrus.core
+  (:require [citrus.resolver :as r]))
 
 (defn reconciler
   "Accepts a hash of `:state` atom & `:resolvers` hash of subscription resolvers where keys are subscription path vectors and values are data resolving functions
@@ -31,7 +31,7 @@
 (defn subscription
   "Create a subscription to state updates
 
-    (scrum/subscription reconciler [:users 0] (juxt [:fname :lname]))
+    (citrus/subscription reconciler [:users 0] (juxt [:fname :lname]))
 
   Arguments
 

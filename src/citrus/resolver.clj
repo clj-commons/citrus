@@ -1,4 +1,4 @@
-(ns scrum.resolver)
+(ns citrus.resolver)
 
 (deftype Resolver [state resolver path reducer]
 
@@ -15,13 +15,13 @@
 
   clojure.lang.IRef
   (setValidator [this vf]
-    (throw (UnsupportedOperationException. "scrum.resolver.Resolver/setValidator")))
+    (throw (UnsupportedOperationException. "citrus.resolver.Resolver/setValidator")))
 
   (getValidator [this]
-    (throw (UnsupportedOperationException. "scrum.resolver.Resolver/getValidator")))
+    (throw (UnsupportedOperationException. "citrus.resolver.Resolver/getValidator")))
 
   (getWatches [this]
-    (throw (UnsupportedOperationException. "scrum.resolver.Resolver/getWatches")))
+    (throw (UnsupportedOperationException. "citrus.resolver.Resolver/getWatches")))
 
   (addWatch [this key callback]
     this)

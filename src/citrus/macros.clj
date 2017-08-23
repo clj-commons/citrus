@@ -1,4 +1,4 @@
-(ns scrum.macros
+(ns citrus.macros
   (:refer-clojure :exclude [doseq]))
 
 (defmacro doseq
