@@ -1,4 +1,4 @@
-*To avoid confusion with Agile term “Scrum” the library and artifact were renamed to **Citrus** since v3.0.0. Older versions are still available under the old name **Scrum**.*
+*To avoid confusion with Agile term “Scrum” the library, artifact and namespaces were renamed to **Citrus** since v3.0.0. Older versions are still available under the old name **Scrum**. To migrate to v3.0.0+ replace all occurrences of **scrum** with **citrus**.*
 
 <img src="logo.png" width="251" height="36" alt="citrus logo" />
 
