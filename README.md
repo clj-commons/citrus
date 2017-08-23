@@ -1,6 +1,12 @@
+*To avoid confusion with Agile term “Scrum” the library and artifact were renamed to **Citrus** since v3.0.0. Older versions are still available under the old name **Scrum**.*
+
 <img src="logo.png" width="251" height="36" alt="citrus logo" />
 
-*State Coordination for [Rum](https://github.com/tonsky/rum/)*
+*State management library for [Rum](https://github.com/tonsky/rum/)*
+
+> I am a big fan of Rum the library, as well as Rum the liquor. In almost every classic Rum-based cocktail, citrus is used as an ingredient to 1) pair with the sugar-based flavor of the Rum and 2) smooth the harshness of the alcohol flavor.
+  Wherever you find Rum, it is almost always accompanied with some form of citrus to control and balance the cocktail. I think it is very fitting for how this library pairs with Rum.
+>  — [@oakmac](https://github.com/roman01la/citrus/issues/16#issuecomment-324111509)
 
 <a href="http://clojurians.net/">
   <img src="slack.png" width="64" height="64" />
@@ -54,7 +60,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
-Add to *project.clj* / *build.boot*: `[org.roman01la/citrus "2.3.0-SNAPSHOT"]`
+Add to *project.clj* / *build.boot*: `[org.roman01la/citrus "3.0.0"]`
 
 ## Usage
 ```clojure
