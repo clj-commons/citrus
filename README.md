@@ -10,7 +10,7 @@
 
 <a href="http://clojurians.net/">
   <img src="slack.png" width="64" height="64" />
-  <span>Discuss on Slack #citrus</span>
+  <span>Discuss on Clojurians Slack #citrus</span>
 </a>
 
 ## Table of Contents
