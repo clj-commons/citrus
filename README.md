@@ -56,7 +56,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 🚰 Server-side rendering with convenient state hydration
 
 ## Apps built with Citrus
-- [Hacker News clone with server-side rendering](https://github.com/roman01la/citrus-ssr-example)
+- [Hacker News clone with server-side rendering](https://github.com/roman01la/scrum-ssr-example)
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
