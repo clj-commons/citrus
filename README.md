@@ -29,6 +29,7 @@
   - [Scheduling and batching](#scheduling-and-batching)
   - [Server-side rendering](#server-side-rendering)
 - [Best practices](#best-practices)
+- [Recipes](#recipes)
 - [FAQ](#faq)
 - [Testing](#testing)
 - [Roadmap](#roadmap)
@@ -416,6 +417,10 @@ If you want to display different data based on certain condition, such as user r
 
 - Pass the reconciler explicity from parent components to children. Since it is a reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer to do it _Redux-way_, you can use context in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
 - Set up the initial state value by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
+
+## Recipes
+
+- [Routing](https://github.com/roman01la/citrus/tree/master/recipes/routing)
 
 ## FAQ
 
