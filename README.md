@@ -1,4 +1,4 @@
-*To avoid confusion with Agile term “Scrum” the library, artifact and namespaces were renamed to **Citrus** since v3.0.0. Older versions are still available under the old name **Scrum**. To migrate to v3.0.0+ replace all occurrences of **scrum** with **citrus**.*
+*__Scrum is now Citrus__ as of v3.0.0 to avoid confusion with Agile term “Scrum”. Older versions are still available under the old name **Scrum**. To migrate to v3.0.0+ replace all occurrences of **scrum** with **citrus**.*
 
 <img src="logo.png" width="252" height="35" alt="citrus logo" />
 
@@ -56,7 +56,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 🚰 Server-side rendering with convenient state hydration
 
 ## Apps built with Citrus
-- [Hacker News clone with server-side rendering](https://github.com/roman01la/citrus-ssr-example)
+- [Hacker News clone with server-side rendering](https://github.com/roman01la/scrum-ssr-example)
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
