@@ -85,7 +85,7 @@ Add to *project.clj* / *build.boot*: `[org.roman01la/citrus "3.0.0"]`
 
 (defmethod control :init-ready [_ [counter]]
   (if-not (nil? counter)
-    {:state counter} ;; init with saved state
+    {:state (js/parseInt counter)} ;; init with saved state
     {:state initial-state})) ;; or with predefined initial state
 
 (defmethod control :inc [_ _ counter]
