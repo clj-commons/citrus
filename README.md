@@ -13,6 +13,10 @@
   <span>Discuss on Clojurians Slack #citrus</span>
 </a>
 
+<a href="https://www.patreon.com/bePatron?c=1239559">
+  <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="40px" />
+</a>
+
 ## Table of Contents
 
 - [Motivation](#motivation)
