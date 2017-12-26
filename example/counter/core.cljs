@@ -18,9 +18,9 @@
   {:state initial-state})
 
 (cofx/defhandler control :load
-  {:cofx {:local-store #(js/localStorage.getItem "count")}}
+  {:cofx [[:local-storage :count]]}
   [_ [key] _ coeffects]
-  {:state (-> coeffects :local-store int)})
+  {:state (-> coeffects :local-storage int)})
 
 (defmethod control :save [_ [key] counter]
   {:local-storage {:op    :set
@@ -77,7 +77,8 @@
          (citrus/reconciler
            {:state           (atom {})
             :controllers     {:counter control}
-            :effect-handlers {:local-storage local-storage}}))
+            :effect-handlers {:local-storage local-storage}
+            :co-effects      {:local-storage #(js/localStorage.getItem (name %))}}))
 
 ;; initialize controllers
 (defonce init-ctrl (citrus/broadcast-sync! reconciler :init))

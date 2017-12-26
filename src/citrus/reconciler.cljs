@@ -19,7 +19,7 @@
   (broadcast! [this event args])
   (broadcast-sync! [this event args]))
 
-(deftype Reconciler [controllers effect-handlers state queue scheduled? batched-updates chunked-updates meta]
+(deftype Reconciler [controllers effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta]
 
   Object
   (equiv [this other]
@@ -78,8 +78,8 @@
                   (let [[cname ename ctrl] event
                         cofx (get-in (.-meta ctrl) [:citrus ename :cofx])
                         cofx (reduce
-                               (fn [cofx [key f]]
-                                 (assoc cofx key (f)))
+                               (fn [cofx [key & args]]
+                                 (assoc cofx key (apply (co-effects key) args)))
                                {}
                                cofx)
                         effects (ctrl st cofx)]
@@ -96,8 +96,8 @@
     (let [ctrl (get controllers cname)
           cofx (get-in (.-meta ctrl) [:citrus event :cofx])
           cofx (reduce
-                 (fn [cofx [key f]]
-                   (assoc cofx key (f)))
+                 (fn [cofx [key & args]]
+                   (assoc cofx key (apply (co-effects key) args)))
                  {}
                  cofx)
           effects (ctrl event args (get @state cname) cofx)]

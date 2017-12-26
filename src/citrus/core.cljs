@@ -22,10 +22,11 @@
 
   Returned value supports deref, watches and metadata.
   The only supported option is `:meta`"
-  [{:keys [state controllers effect-handlers batched-updates chunked-updates]} & {:as options}]
+  [{:keys [state controllers effect-handlers co-effects batched-updates chunked-updates]} & {:as options}]
   (r/Reconciler.
     controllers
     effect-handlers
+    co-effects
     state
     (volatile! [])
     (volatile! nil)
