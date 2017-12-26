@@ -63,30 +63,28 @@
   (dispatch! [this cname event args]
     (queue-effects!
       queue
-      [cname #((get controllers cname) event args (get @state cname))])
+      [cname #((get controllers cname) event args (get % cname))])
 
     (schedule-update!
       batched-updates
       scheduled?
       (fn []
-        (let [effects
-              (map (fn [[cname ctrl]] [cname (ctrl)]) @queue)]
-          (clear-queue! queue)
-          (let [state-effects (filter (comp :state second) effects)
-                other-effects (->> effects
-                                   (map (fn [[cname effect]]
-                                          [cname (dissoc effect :state)]))
-                                   (filter (comp seq second)))]
-            (when (seq state-effects)
-              (swap! state
-                #(reduce (fn [agg [cname {cstate :state}]]
-                           (assoc agg cname cstate))
-                         % state-effects)))
-            (when (seq other-effects)
-              (m/doseq [[cname effects] effects]
-                (m/doseq [[id effect] effects]
-                  (when-let [handler (get effect-handlers id)]
-                    (handler this cname effect))))))))))
+        (let [events @queue
+              _ (clear-queue! queue)
+              next-state
+              (loop [st @state
+                     [event & events] events]
+                (if (seq event)
+                  (let [[cname ctrl] event
+                        effects (ctrl st)]
+                    (m/doseq [[id effect] (dissoc effects :state)]
+                             (when-let [handler (get effect-handlers id)]
+                               (handler this cname effect)))
+                    (if (contains? effects :state)
+                      (recur (assoc st cname (:state effects)) events)
+                      (recur st events)))
+                  st))]
+          (reset! state next-state)))))
 
   (dispatch-sync! [this cname event args]
     (let [effects ((get controllers cname) event args (get @state cname))]
