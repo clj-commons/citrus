@@ -1,7 +1,10 @@
 (ns counter.core
+  (:require-macros [citrus.cofx :as cofx])
   (:require [rum.core :as rum]
             [citrus.core :as citrus]
             [goog.dom :as dom]))
+
+(enable-console-print!)
 
 ;;
 ;; define controller & event handlers
@@ -14,32 +17,36 @@
 (defmethod control :init []
   {:state initial-state})
 
-(defmethod control :load [_ [key]]
-  {:local-storage {:op :get
-                   :key key
-                   :on-success :load-ready}})
+(cofx/defhandler control :load
+  {:cofx {:local-store #(js/localStorage.getItem :count)}}
+  [_ [key] _ coeffects]
+  {:load-ready (:local-store coeffects)})
+
+(alter-meta! (var initial-state) assoc :HELLO 1)
+
+(println (meta (var initial-state)))
 
 (defmethod control :load-ready [_ [counter]]
   {:state (int counter)})
 
 (defmethod control :save [_ [key] counter]
-  {:local-storage {:op :set
+  {:local-storage {:op    :set
                    :value counter
-                   :key key}})
+                   :key   key}})
 
 (defmethod control :inc [_ _ counter]
   (let [next-counter (inc counter)]
-    {:state next-counter
-     :local-storage {:op :set
+    {:state         next-counter
+     :local-storage {:op    :set
                      :value next-counter
-                     :key :count}}))
+                     :key   :count}}))
 
 (defmethod control :dec [_ _ counter]
   (let [next-counter (dec counter)]
-    {:state next-counter
-     :local-storage {:op :set
+    {:state         next-counter
+     :local-storage {:op    :set
                      :value next-counter
-                     :key :count}}))
+                     :key   :count}}))
 
 
 ;;
@@ -74,10 +81,10 @@
 
 ;; create Reconciler instance
 (defonce reconciler
-  (citrus/reconciler
-    {:state (atom {})
-     :controllers {:counter control}
-     :effect-handlers {:local-storage local-storage}}))
+         (citrus/reconciler
+           {:state           (atom {})
+            :controllers     {:counter control}
+            :effect-handlers {:local-storage local-storage}}))
 
 ;; initialize controllers
 (defonce init-ctrl (citrus/broadcast-sync! reconciler :init))
