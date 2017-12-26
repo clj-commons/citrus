@@ -63,7 +63,7 @@
   (dispatch! [this cname event args]
     (queue-effects!
       queue
-      [cname #((get controllers cname) event args (get % cname))])
+      [cname event #((get controllers cname) event args (get %1 cname) %2)])
 
     (schedule-update!
       batched-updates
@@ -75,8 +75,14 @@
               (loop [st @state
                      [event & events] events]
                 (if (seq event)
-                  (let [[cname ctrl] event
-                        effects (ctrl st)]
+                  (let [[cname ename ctrl] event
+                        cofx (get-in (.-meta ctrl) [:citrus ename :cofx])
+                        cofx (reduce
+                               (fn [cofx [key f]]
+                                 (assoc cofx key (f)))
+                               {}
+                               cofx)
+                        effects (ctrl st cofx)]
                     (m/doseq [[id effect] (dissoc effects :state)]
                              (when-let [handler (get effect-handlers id)]
                                (handler this cname effect)))
@@ -87,7 +93,14 @@
           (reset! state next-state)))))
 
   (dispatch-sync! [this cname event args]
-    (let [effects ((get controllers cname) event args (get @state cname))]
+    (let [ctrl (get controllers cname)
+          cofx (get-in (.-meta ctrl) [:citrus event :cofx])
+          cofx (reduce
+                 (fn [cofx [key f]]
+                   (assoc cofx key (f)))
+                 {}
+                 cofx)
+          effects (ctrl event args (get @state cname) cofx)]
       (m/doseq [[id effect] effects]
         (let [handler (get effect-handlers id)]
           (cond

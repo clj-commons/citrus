@@ -23,7 +23,7 @@
       (let [{:keys [ctrl-name event-name meta args body]} result
             {:keys [event args state cofx]} args]
         `(do
-           (alter-meta! #'~ctrl-name #(assoc-in % [:citrus ~event-name] ~meta))
+           (set! (.-meta ~ctrl-name) (assoc-in (.-meta ~ctrl-name) [:citrus ~event-name] ~meta))
            (defmethod ~ctrl-name ~event-name [~event ~args ~state ~cofx] ~@body))))))
 
 (comment

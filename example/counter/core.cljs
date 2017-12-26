@@ -18,16 +18,9 @@
   {:state initial-state})
 
 (cofx/defhandler control :load
-  {:cofx {:local-store #(js/localStorage.getItem :count)}}
+  {:cofx {:local-store #(js/localStorage.getItem "count")}}
   [_ [key] _ coeffects]
-  {:load-ready (:local-store coeffects)})
-
-(alter-meta! (var initial-state) assoc :HELLO 1)
-
-(println (meta (var initial-state)))
-
-(defmethod control :load-ready [_ [counter]]
-  {:state (int counter)})
+  {:state (-> coeffects :local-store int)})
 
 (defmethod control :save [_ [key] counter]
   {:local-storage {:op    :set
