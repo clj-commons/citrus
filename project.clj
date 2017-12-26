@@ -3,8 +3,8 @@
   :url "https://github.com/roman01la/citrus"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.8.0" :scope "provided"]
-                 [org.clojure/clojurescript "1.9.521" :scope "provided"]
+  :dependencies [[org.clojure/clojure "1.9.0" :scope "provided"]
+                 [org.clojure/clojurescript "1.9.946" :scope "provided"]
                  [rum "0.10.8"]]
 
   :plugins [[lein-cljsbuild "1.1.6" :exclusions [[org.clojure/clojure]]]]
