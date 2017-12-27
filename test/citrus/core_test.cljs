@@ -17,24 +17,15 @@
 
 (defmulti test-controller (fn [event] event))
 
-(defmethod test-controller :init []
-          {:state :some-state})
-
-(defmethod test-controller :nil []
-          {:state nil})
+(defmethod test-controller :set-state [_ [new-state] _]
+          {:state new-state})
 
 (deftest bug-20-nil-valid-state
-  (let [r (citrus/reconciler {:state (atom {}) :controllers {:test test-controller}})
+  (let [r (citrus/reconciler {:state (atom {:test :some-state}) :controllers {:test test-controller}})
         sub (citrus/subscription r [:test])]
-    (citrus/dispatch! r :test :init)
-    (println "1" (js/Date.now))
-    (async done1 (js/setTimeout (fn async1 []
-                                  (println "2" (js/Date.now))
-                                  (is (= :some-state @sub))
-                                  #_(citrus/dispatch! r :test :nil)
-                                  #_(async done2 (js/setTimeout (fn async2 []
-                                                                  (is (= nil @sub))
-                                                                  (done2))
-                                                                30))
-                                  (done1))
-                                3000))))
+    (citrus/dispatch! r :test :set-state 1)
+    (citrus/dispatch! r :test :set-state 2)
+    (citrus/dispatch! r :test :set-state nil)
+    (async done (js/requestAnimationFrame (fn async []
+                                             (is (= nil @sub))
+                                             (done))))))
