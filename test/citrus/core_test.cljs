@@ -194,3 +194,29 @@
       (citrus/dispatch-sync! r :test :set-state 10)
       (citrus/dispatch-sync! r :dummy :set-state 20)
       (is (= 15 @derived-sub)))))
+
+
+(deftest custom-scheduler
+
+  (testing "a synchronous scheduler updates state synchronously"
+    (let [r (citrus/reconciler {:state           (atom {:test  :initial-state})
+                                :controllers     {:test  test-controller}
+                                :batched-updates (fn [f] (f))})
+          sub (citrus/subscription r [:test])]
+      (is (= :initial-state @sub))
+      (citrus/dispatch! r :test :set-state nil)
+      (is (nil? @sub))))
+
+  (testing "an asynchronous scheduler updates state asynchronously"
+    (let [async-delay 50 ;; in ms
+          r (citrus/reconciler {:state           (atom {:test  :initial-state})
+                                :controllers     {:test  test-controller}
+                                :batched-updates (fn [f] (js/setTimeout f async-delay))})
+          sub (citrus/subscription r [:test])]
+      (is (= :initial-state @sub))
+      (citrus/dispatch! r :test :set-state nil)
+      (is (= :initial-state @sub))
+      (async done (js/setTimeout (fn []
+                                   (is (nil? @sub))
+                                   (done))
+                                 (+ async-delay 100)))))) ;; 100 is a safe delay to let the state update happen
