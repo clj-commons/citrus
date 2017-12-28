@@ -7,9 +7,13 @@
                  [org.clojure/clojurescript "1.9.946" :scope "provided"]
                  [rum "0.10.8"]]
 
-<<<<<<< HEAD
   :plugins [[lein-cljsbuild "1.1.6" :exclusions [[org.clojure/clojure]]]
-            [lein-figwheel "0.5.14" :exclusions [org.clojure/clojure]]]
+            [lein-figwheel "0.5.14" :exclusions [org.clojure/clojure]]
+            [lein-doo "0.1.8"]]
+
+  :aliases {"cljs-test" ["do"
+                         ["clean"]
+                         ["doo" "firefox" "test"]]}
 
   :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
                                   [org.clojure/tools.nrepl "0.2.10"]
@@ -17,16 +21,6 @@
                                   [figwheel-sidecar "0.5.14"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :source-paths ["src" "dev"]}}
-||||||| merged common ancestors
-  :plugins [[lein-cljsbuild "1.1.6" :exclusions [[org.clojure/clojure]]]]
-=======
-  :plugins [[lein-cljsbuild "1.1.6" :exclusions [[org.clojure/clojure]]]
-            [lein-doo "0.1.8"]]
-
-  :aliases {"cljs-test" ["do"
-                         ["clean"]
-                         ["doo" "firefox" "test"]]}
->>>>>>> Set up basic CLJS testing with doo
 
   :cljsbuild {:builds
               [{:id           "dev"
@@ -41,7 +35,6 @@
 
                {:id           "min"
                 :source-paths ["src" "example"]
-<<<<<<< HEAD
                 :compiler     {:main            counter.core
                                :output-to       "resources/public/js/compiled-min/main.js"
                                :output-dir      "resources/public/js/compiled-min/out"
@@ -51,34 +44,11 @@
                                :elide-asserts   true
                                :output-wrapper  true
                                :compiler-stats  true
-                               :parallel-build  true}}]})
-||||||| merged common ancestors
-                :compiler {:main counter.core
-                           :output-to "target/counter.js"
-                           :output-dir "target/min"
-                           :optimizations :advanced
-                           :closure-defines {"goog.DEBUG" false}
-                           :static-fns true
-                           :elide-asserts true
-                           :output-wrapper true
-                           :compiler-stats true
-                           :parallel-build true}}]})
-=======
-                :compiler {:main counter.core
-                           :output-to "target/counter.js"
-                           :output-dir "target/min"
-                           :optimizations :advanced
-                           :closure-defines {"goog.DEBUG" false}
-                           :static-fns true
-                           :elide-asserts true
-                           :output-wrapper true
-                           :compiler-stats true
-                           :parallel-build true}}
-               {:id "test"
+                               :parallel-build  true}}
+               {:id           "test"
                 :source-paths ["src" "test"]
-                :compiler {:output-to "target/test.js"
-                           :main citrus.test-runner
-                           :optimizations :none}}]}
+                :compiler     {:output-to     "target/test.js"
+                               :main          citrus.test-runner
+                               :optimizations :none}}] }
 
   :doo {:paths {:karma "./node_modules/karma/bin/karma"}})
->>>>>>> Set up basic CLJS testing with doo

@@ -3,7 +3,8 @@
             [citrus.core :as citrus]
             [citrus.reconciler :as rec]
             [citrus.cursor :as cur]
-            [goog.object :as obj]))
+            [goog.object :as obj]
+            [rum.core :as rum]))
 
 (deftest reconciler
   (testing "Should return a Reconciler instance"
@@ -36,11 +37,21 @@
 (defmethod test-controller :set-state [_ [new-state] _]
   {:state new-state})
 
+(def side-effect-atom (atom 0))
 
-(def r (citrus/reconciler {:state       (atom {:test  :initial-state
-                                               :dummy nil})
-                           :controllers {:test  test-controller
-                                         :dummy dummy-controller}}))
+(defn side-effect [reconciler ctrl-name effect]
+  (swap! side-effect-atom inc))
+
+(defmethod test-controller :side-effect [_ _ _]
+  {:side-effect true})
+
+
+(def r (citrus/reconciler {:state           (atom {:test  :initial-state
+                                                   :dummy nil})
+                           :controllers     {:test  test-controller
+                                             :dummy dummy-controller}
+                           :effect-handlers {:side-effect side-effect}}))
+
 (def sub (citrus/subscription r [:test]))
 (def dummy (citrus/subscription r [:dummy]))
 
@@ -144,3 +155,42 @@
       (async done (js/requestAnimationFrame (fn []
                                               (obj/set js/window "onerror" nil)
                                               (done)))))))
+
+
+(deftest side-effects
+
+  (testing "Works synchronously"
+    (is (zero? @side-effect-atom))
+    (citrus/dispatch-sync! r :test :side-effect)
+    (is (= 1 @side-effect-atom)))
+
+  (testing "Works asynchronously"
+    (is (= 1 @side-effect-atom))
+    (citrus/dispatch! r :test :side-effect)
+    (is (= 1 @side-effect-atom))
+    (async done (js/requestAnimationFrame (fn []
+                                            (is (= 2 @side-effect-atom))
+                                            (done))))))
+
+
+(deftest subscription
+
+  (testing "basic cases already tested above")
+
+  (testing "reducer function"
+    (let [reducer-sub (citrus/subscription r [:test] #(str %))]
+      (citrus/dispatch-sync! r :test :set-state 1)
+      (is (= "1" @reducer-sub))))
+
+  (testing "deep path"
+    (let [deep-sub (citrus/subscription r [:test :a])]
+      (citrus/dispatch-sync! r :test :set-state {:a 42})
+      (is (= 42 @deep-sub))))
+
+  (testing "with rum's derived-atom"
+    (let [derived-sub (rum/derived-atom [sub dummy] ::key
+                                        (fn [sub-value dummy-value]
+                                          (/ (+ sub-value dummy-value) 2)))]
+      (citrus/dispatch-sync! r :test :set-state 10)
+      (citrus/dispatch-sync! r :dummy :set-state 20)
+      (is (= 15 @derived-sub)))))
