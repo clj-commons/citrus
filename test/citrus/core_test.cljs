@@ -219,4 +219,4 @@
       (async done (js/setTimeout (fn []
                                    (is (nil? @sub))
                                    (done))
-                                 (+ async-delay 100)))))) ;; 100 is a safe delay to let the state update happen
+                                 async-delay)))))
