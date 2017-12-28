@@ -1,5 +1,6 @@
 (ns citrus.core
-  (:require [citrus.resolver :as r]))
+  (:require [citrus.resolver :as r]
+            [citrus.cofx :as cofx]))
 
 (defn reconciler
   "Accepts a hash of `:state` atom & `:resolvers` hash of subscription resolvers where keys are subscription path vectors and values are data resolving functions
@@ -9,7 +10,7 @@
 
   Returns a hash of `resolvers` and `state` atom which will be populated with resolved subscriptions data during rendering"
   [{:keys [state resolvers]}]
-  {:state state
+  {:state     state
    :resolvers resolvers})
 
 (defn dispatch!
@@ -42,3 +43,13 @@
    (subscription reconciler path nil))
   ([{:keys [state resolvers]} path reducer]
    (r/make-resolver state resolvers path reducer)))
+
+(defmacro defhandler
+  "Create event handler with optional meta data
+
+  (citrus/defhandler control :load
+    {:cofx [[:local-storage :key]]}
+    [event args state coeffects]
+    {:state (:local-storage coeffects)})"
+  [& args]
+  (cofx/make-defhandler args))

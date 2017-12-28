@@ -1,10 +1,8 @@
 (ns counter.core
-  (:require-macros [citrus.cofx :as cofx])
+  (:require-macros [citrus.core :as citrus])
   (:require [rum.core :as rum]
             [citrus.core :as citrus]
             [goog.dom :as dom]))
-
-(enable-console-print!)
 
 ;;
 ;; define controller & event handlers
@@ -17,7 +15,7 @@
 (defmethod control :init []
   {:state initial-state})
 
-(cofx/defhandler control :load
+(citrus/defhandler control :load
   {:cofx [[:local-storage :count]]}
   [_ [key] _ coeffects]
   {:state (-> coeffects :local-storage int)})

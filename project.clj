@@ -27,6 +27,7 @@
                                :output-dir     "resources/public/js/compiled/out"
                                :compiler-stats true
                                :parallel-build true}}
+
                {:id           "min"
                 :source-paths ["src" "example"]
                 :compiler     {:main            counter.core
