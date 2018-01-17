@@ -7,11 +7,11 @@
 (defn- clear-queue! [queue]
   (vreset! queue []))
 
-(defn- schedule-update! [schedule! scheduled? f]
+(defn- schedule-update! [{:keys [schedule-fn release-fn]} scheduled? f]
   (when-let [id @scheduled?]
     (vreset! scheduled? nil)
-    (js/cancelAnimationFrame id))
-  (vreset! scheduled? (schedule! f)))
+    (release-fn id))
+  (vreset! scheduled? (schedule-fn f)))
 
 (defprotocol IReconciler
   (dispatch! [this controller event args])

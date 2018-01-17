@@ -8,7 +8,7 @@
     (citrus/reconciler {:state (atom {})
                         :controllers {:counter counter/control}
                         :effect-handlers {:http effects/http}
-                        :batched-updates f
+                        :batched-updates {:schedule-fn f :release-fn f'}
                         :chunked-updates f})
 
   Arguments
@@ -17,7 +17,8 @@
       state             - app state atom
       controllers       - a hash of state controllers
       effect-handlers   - a hash of effects handlers
-      batched-updates   - a function used to batch reconciler updates, defaults to `js/requestAnimationFrame`
+      batched-updates   - a hash of two functions used to batch reconciler updates, defaults to
+                          `{:schedule-fn js/requestAnimationFrame :release-fn js/cancelAnimationFrame}`
       chunked-updates   - a function used to divide reconciler update into chunks, doesn't used by default
 
   Returned value supports deref, watches and metadata.
@@ -30,7 +31,7 @@
     state
     (volatile! [])
     (volatile! nil)
-    (or batched-updates js/requestAnimationFrame)
+    (or batched-updates {:schedule-fn js/requestAnimationFrame :release-fn js/cancelAnimationFrame})
     chunked-updates
     (:meta options)))
 
