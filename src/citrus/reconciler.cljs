@@ -7,12 +7,6 @@
 (defn- clear-queue! [queue]
   (vreset! queue []))
 
-(defn- schedule-update! [{:keys [schedule-fn release-fn]} scheduled? f]
-  (when-let [id @scheduled?]
-    (vreset! scheduled? nil)
-    (release-fn id))
-  (vreset! scheduled? (schedule-fn f)))
-
 (defprotocol IReconciler
   (dispatch! [this controller event args])
   (dispatch-sync! [this controller event args])
@@ -65,32 +59,35 @@
       queue
       [cname event #((get controllers cname) event args (get %1 cname) %2)])
 
-    (schedule-update!
-      batched-updates
-      scheduled?
-      (fn []
-        (let [events @queue
-              _ (clear-queue! queue)
-              next-state
-              (loop [st @state
-                     [event & events] events]
-                (if (seq event)
-                  (let [[cname ename ctrl] event
-                        cofx (get-in (.-meta ctrl) [:citrus ename :cofx])
-                        cofx (reduce
-                               (fn [cofx [key & args]]
-                                 (assoc cofx key (apply (co-effects key) args)))
-                               {}
-                               cofx)
-                        effects (ctrl st cofx)]
-                    (m/doseq [[id effect] (dissoc effects :state)]
-                             (when-let [handler (get effect-handlers id)]
-                               (handler this cname effect)))
-                    (if (contains? effects :state)
-                      (recur (assoc st cname (:state effects)) events)
-                      (recur st events)))
-                  st))]
-          (reset! state next-state)))))
+    (when-not @scheduled?
+      (let [{:keys [schedule-fn]} batched-updates
+            perform-batched-update
+            (fn []
+              (let [events @queue
+                    _ (clear-queue! queue)
+                    next-state
+                    (loop [st @state
+                           [event & events] events]
+                      (if (seq event)
+                        (let [[cname ename ctrl] event
+                              cofx (get-in (.-meta ctrl) [:citrus ename :cofx])
+                              cofx (reduce
+                                    (fn [cofx [key & args]]
+                                      (assoc cofx key (apply (co-effects key) args)))
+                                    {}
+                                    cofx)
+                              effects (ctrl st cofx)]
+                          (m/doseq [[id effect] (dissoc effects :state)]
+                            (when-let [handler (get effect-handlers id)]
+                              (handler this cname effect)))
+                          (if (contains? effects :state)
+                            (recur (assoc st cname (:state effects)) events)
+                            (recur st events)))
+                        st))]
+                (vreset! scheduled? nil)
+                (reset! state next-state)))]
+
+        (vreset! scheduled? (schedule-fn perform-batched-update)))))
 
   (dispatch-sync! [this cname event args]
     (let [ctrl (get controllers cname)
