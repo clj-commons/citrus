@@ -56,14 +56,14 @@
 (def dummy (citrus/subscription r [:dummy]))
 
 
-(deftest initial-state
+#_(deftest initial-state
 
   (testing "Checking initial state in atom"
     (is (= :initial-state @sub))
     (is (nil? @dummy))))
 
 
-(deftest dispatch-sync!
+#_(deftest dispatch-sync!
 
   (testing "One dispatch-sync! works"
     (citrus/dispatch-sync! r :test :set-state 1)
@@ -80,7 +80,7 @@
                           (citrus/dispatch-sync! r :test :non-existing-event)))))
 
 
-(deftest broadcast-sync!
+#_(deftest broadcast-sync!
 
   (testing "One broadcast-sync! works"
     (citrus/broadcast-sync! r :set-state 1)
@@ -99,7 +99,7 @@
                           (citrus/broadcast-sync! r :non-existing-event)))))
 
 
-(deftest dispatch!
+#_(deftest dispatch!
 
   (testing "dispatch! works asynchronously"
     (citrus/dispatch-sync! r :test :set-state "sync")
@@ -116,7 +116,7 @@
                                             (is (= 9 @sub))
                                             (done)))))
 
-  #_(testing "dispatch! an non-existing event fails"
+  (testing "dispatch! an non-existing event fails"
     (let [err-handler (fn [err]
                         (is (re-find #"No method .* for dispatch value: :non-existing-dispatch" (.toString err))))]
       (obj/set js/window "onerror" err-handler)
@@ -129,14 +129,14 @@
 (deftest broadcast!
 
   ;; Look at the assertions in the async block... False positives, don't understand why
-  #_(testing "broadcast! works asynchronously"
+  (testing "broadcast! works asynchronously"
     (citrus/broadcast-sync! r :set-state "sync")
     (citrus/broadcast! r :set-state "async")
     (is (= "sync" @sub))
     (is (= "sync" @dummy))
     (async done (js/requestAnimationFrame (fn []
-                                            (is (= 1 2 "async" @sub))
-                                            (is (= 1 2 "async" @dummy))
+                                            (is (= 1 "async" @sub))
+                                            (is (= 1 "async" @dummy))
                                             (done)))))
 
   (testing "broadcast! in series keeps the last value"
@@ -157,7 +157,7 @@
                                               (done)))))))
 
 
-(deftest side-effects
+#_(deftest side-effects
 
   (testing "Works synchronously"
     (is (zero? @side-effect-atom))
@@ -173,7 +173,7 @@
                                             (done))))))
 
 
-(deftest subscription
+#_(deftest subscription
 
   (testing "basic cases already tested above")
 
@@ -196,7 +196,7 @@
       (is (= 15 @derived-sub)))))
 
 
-(deftest custom-scheduler
+#_(deftest custom-scheduler
 
   (testing "a synchronous scheduler updates state synchronously"
     (let [r (citrus/reconciler {:state           (atom {:test :initial-state})
