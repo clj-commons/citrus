@@ -504,7 +504,12 @@ If you've encountered an issue or want to request a feature or any other kind of
 
 This project is using [Leiningen](https://leiningen.org/) build tool, make sure you have it installed.
 
-Run tests with `lein test`.
+To run Clojure tests (on the JVM), execute `lein test`.
+
+To run ClojureScript tests (on Firefox) you'll need [Node.js](https://nodejs.org/) and the [Firefox web browser](https://www.mozilla.org/en-US/firefox/).
+Then execute :
+- `npm install` (only once, install testing dependencies locally)
+- `lein cljs-test` : this will open a new Firefox window to run the tests and watch for file changes.
 
 ## License
 

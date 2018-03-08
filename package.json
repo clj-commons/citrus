@@ -1,0 +1,29 @@
+{
+  "name": "citrus",
+  "version": "3.0.1-SNAPSHOT",
+  "description": "npm dependencies for Citrus",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roman01la/citrus.git"
+  },
+  "author": "Roman Liutikov",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/roman01la/citrus/issues"
+  },
+  "homepage": "https://github.com/roman01la/citrus#readme",
+  "devDependencies": {
+    "karma": "^2.0.0",
+    "karma-cli": "^1.0.1",
+    "karma-cljs-test": "^0.1.0",
+    "karma-firefox-launcher": "^1.1.0"
+  }
+}
