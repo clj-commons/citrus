@@ -199,9 +199,9 @@
 (deftest custom-scheduler
 
   (testing "a synchronous scheduler updates state synchronously"
-    (let [r (citrus/reconciler {:state           (atom {:test  :initial-state})
-                                :controllers     {:test  test-controller}
-                                :batched-updates (fn [f] (f))})
+    (let [r (citrus/reconciler {:state           (atom {:test :initial-state})
+                                :controllers     {:test test-controller}
+                                :batched-updates {:schedule-fn (fn [f] (f)) :release-fn (fn [_])}})
           sub (citrus/subscription r [:test])]
       (is (= :initial-state @sub))
       (citrus/dispatch! r :test :set-state nil)
@@ -209,9 +209,9 @@
 
   (testing "an asynchronous scheduler updates state asynchronously"
     (let [async-delay 50 ;; in ms
-          r (citrus/reconciler {:state           (atom {:test  :initial-state})
-                                :controllers     {:test  test-controller}
-                                :batched-updates (fn [f] (js/setTimeout f async-delay))})
+          r (citrus/reconciler {:state           (atom {:test :initial-state})
+                                :controllers     {:test test-controller}
+                                :batched-updates {:schedule-fn (fn [f] (js/setTimeout f async-delay)) :release-fn (fn [id] (js/clearTimeout id))}})
           sub (citrus/subscription r [:test])]
       (is (= :initial-state @sub))
       (citrus/dispatch! r :test :set-state nil)
