@@ -1,3 +1,10 @@
+## 3.1.0
+- Added deps.edn
+- Rum 0.11.2
+- ClojureScript 1.10.238
+- Provide both a schedule-fn and release-fn to customize batched updates 4f9a07d
+- Implement co-effects via `citrus.core/defhandler` macro
+
 ## 1.0.0-SNAPHOST
 - add Reconciler type to get rid of global state [7afd576](https://github.com/roman01la/citrus/commit/7afd576b512d53f3846beb8fca1bcd06066ac289)
 - remove ISwap & IReset protocols impl and introduce updates batching & scheduling [00dd5cc](https://github.com/roman01la/citrus/commit/0fdbe26539ccae3a06b2b5c41c7abddf269bc2cb)
