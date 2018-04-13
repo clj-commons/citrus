@@ -4,16 +4,16 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0" :scope "provided"]
-                 [org.clojure/clojurescript "1.9.946" :scope "provided"]
-                 [rum "0.10.8"]]
+                 [org.clojure/clojurescript "1.10.238" :scope "provided"]
+                 [rum "0.11.2"]]
 
-  :plugins [[lein-cljsbuild "1.1.6" :exclusions [[org.clojure/clojure]]]
-            [lein-figwheel "0.5.14" :exclusions [org.clojure/clojure]]]
+  :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
+            [lein-figwheel "0.5.15" :exclusions [org.clojure/clojure]]]
 
-  :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
-                                  [org.clojure/tools.nrepl "0.2.10"]
-                                  [binaryage/devtools "0.9.7"]
-                                  [figwheel-sidecar "0.5.14"]]
+  :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.2"]
+                                  [org.clojure/tools.nrepl "0.2.12"]
+                                  [binaryage/devtools "0.9.10"]
+                                  [figwheel-sidecar "0.5.15"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :source-paths ["src" "dev"]}}
 
