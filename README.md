@@ -421,7 +421,7 @@ If you want to display different data based on certain condition, such as user r
 
 ## Best practices
 
-- Pass the reconciler explicity from parent components to children. Since it is a reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer dependency injection, you can use React's context API in _Rum_ as well https://github.com/tonsky/rum/#interop-with-react
+- Pass the reconciler explicity from parent components to children. Since it is a reference type it won't affect `rum/static` (`shouldComponentUpdate`) optimization. But if you prefer dependency injection, you can use React's Context API as well https://reactjs.org/docs/context.html
 - Set up the initial state value by `broadcast-sync!`ing an `:init` event before first render. This enforces controllers to keep state initialization in-place where they are defined.
 - Handle side effects using effect handlers. This allows reconciler to batch effects when needed, and also makes it easier to test controllers.
 
