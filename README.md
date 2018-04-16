@@ -433,7 +433,48 @@ If you want to display different data based on certain condition, such as user r
 
 > Passing reconciler explicitly is annoying and makes components impossible to reuse since they depend on reconciler. Can I use DI via React context to avoid this?
 
-Yes, you can. But keep in mind that there's nothing more straightforward and simpler to understand than data passed as arguments explicitly. The argument on reusability is simply not true. If you think about it, reusable components are always leaf nodes in UI tree and everything above them is application specific UI. Those leaf components doesn't need to know about reconciler, they should provide an API which should be used by application specific components that depend on reconciler and pass in data and callbacks that interact with reconciler.
+Yes, you can. But keep in mind that there's nothing more straightforward and simpler to understand than data passed as arguments explicitly. The argument on reusability is simply not true. If you think about it, reusable components are always leaf nodes in UI tree and everything above them is application specific UI. Those leaf components doesn't need to know about reconciler, they should provide an API which should be used by application specific components that depend on reconciler and pass in data and callbacks that interact with the reconciler.
+
+Bug of course it is an idealistic way of building UI trees and in practice sometimes you really want dependency injection. For this case use React's Context API. Since React 16.3.0 the API has been officially stabilized which means it could be used safely now. Here's a quick example how you might want to use it with Rum and Citrus.
+
+```clojure
+;; create Reconciler instance
+(def reconciler
+  (citrus/reconciler config))
+
+;; create Context instance
+;; which provides two React components: Provider and Consumer
+(def reconciler-context
+  (js/React.createContext))
+  
+;; provider function
+;; that injects the reconciler
+(defn provide-reconciler [child]
+  (js/React.createElement
+    (.-Provider reconciler-context)
+    #js {:value reconciler}
+    child))
+
+;; consumer function
+;; that consumes the reconciler
+(defn with-reconciler [consumer-fn]
+  (js/React.createElement
+    (.-Consumer reconciler-context)
+    nil
+    consumer-fn))
+    
+(rum/defc MyApp []
+  ;; "consume" reconciler instance
+  ;; in arbitrary nested component
+  (with-reconciler
+    (fn [r]
+      [:button {:on-click #(citrus/dispatch! r :some :event)}
+        "Push"])))
+    
+(rum/mount
+  (provide-reconciler (MyApp)) ;; "inject" reconciler instance
+  (dom/getElement "root"))
+```
 
 ## Testing
 
