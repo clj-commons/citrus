@@ -156,6 +156,20 @@
                                               (obj/set js/window "onerror" nil)
                                               (done)))))))
 
+(deftest dispatch-nil-state-issue-20
+  ;https://github.com/roman01la/citrus/issues/20
+
+  (testing "synchronously setting state as `nil` works"
+    (citrus/dispatch-sync! r :test :set-state nil)
+    (is (nil? @sub)))
+
+  (testing "asynchronously setting state as `nil` works"
+    (citrus/dispatch-sync! r :test :set-state "foo")
+    (citrus/dispatch! r :test :set-state nil)
+    (is (= "foo" @sub))
+    (async done (js/requestAnimationFrame (fn []
+                                            (is (nil? @sub))
+                                            (done))))))
 
 (deftest side-effects
 
