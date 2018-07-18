@@ -37,6 +37,12 @@
 (defmethod test-controller :set-state [_ [new-state] _]
   {:state new-state})
 
+(defmethod test-controller :set-substate-a [_ [new-substate] current-state]
+  {:state (assoc current-state :a new-substate)})
+
+(defmethod test-controller :set-substate-b [_ [new-substate] current-state]
+  {:state (assoc current-state :b new-substate)})
+
 (def side-effect-atom (atom 0))
 
 (defn side-effect [_ _ _]
@@ -169,6 +175,31 @@
     (is (= "foo" @sub))
     (async done (js/requestAnimationFrame (fn []
                                             (is (nil? @sub))
+                                            (done))))))
+
+(deftest double-dispatch-issue-23
+  ;https://github.com/roman01la/citrus/issues/23
+
+  (testing "asynchronously dispatching 2 events that change different parts of the same controller"
+    (citrus/dispatch! r :test :set-state {:initial :state})
+    (citrus/dispatch! r :test :set-substate-a "a")
+    (citrus/dispatch! r :test :set-substate-b "b")
+    (async done (js/requestAnimationFrame (fn []
+                                            (is (= {:initial :state :a "a" :b "b"} @sub))
+                                            (done)))))
+
+  (testing "synchronously dispatching 2 events that change different parts of the same controller"
+    (citrus/dispatch-sync! r :test :set-state {:initial :state})
+    (citrus/dispatch-sync! r :test :set-substate-a "a")
+    (citrus/dispatch-sync! r :test :set-substate-b "b")
+    (is (= {:initial :state :a "a" :b "b"} @sub)))
+
+  (testing "mixed dispatch of 2 events that change different part of the same controller"
+    (citrus/dispatch-sync! r :test :set-state {:initial :state})
+    (citrus/dispatch! r :test :set-substate-a "a")
+    (citrus/dispatch-sync! r :test :set-substate-b "b")
+    (async done (js/requestAnimationFrame (fn []
+                                            (is (= {:initial :state :a "a" :b "b"} @sub))
                                             (done))))))
 
 (deftest side-effects
