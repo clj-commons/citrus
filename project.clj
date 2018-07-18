@@ -8,7 +8,8 @@
                  [rum "0.11.2"]]
 
   :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
-            [lein-figwheel "0.5.15" :exclusions [org.clojure/clojure]]]
+            [lein-figwheel "0.5.15" :exclusions [org.clojure/clojure]]
+            [lein-doo "0.1.8"]]
 
   :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.2"]
                                   [org.clojure/tools.nrepl "0.2.12"]
@@ -16,6 +17,10 @@
                                   [figwheel-sidecar "0.5.15"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :source-paths ["src" "dev"]}}
+
+  :aliases {"cljs-test" ["do"
+                         ["clean"]
+                         ["doo" "firefox" "test"]]}
 
   :cljsbuild {:builds
               [{:id           "dev"
@@ -39,4 +44,11 @@
                                :elide-asserts   true
                                :output-wrapper  true
                                :compiler-stats  true
-                               :parallel-build  true}}]})
+                               :parallel-build  true}}
+               {:id           "test"
+                :source-paths ["src" "test"]
+                :compiler     {:output-to     "target/test.js"
+                               :main          citrus.test-runner
+                               :optimizations :none}}]}
+
+  :doo {:paths {:karma "./node_modules/karma/bin/karma"}})
