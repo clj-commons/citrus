@@ -19,7 +19,7 @@
   (broadcast! [this event args])
   (broadcast-sync! [this event args]))
 
-(deftype Reconciler [controllers effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta]
+(deftype Reconciler [controllers effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
 
   Object
   (equiv [this other]
@@ -40,14 +40,11 @@
 
   IWatchable
   (-add-watch [this key callback]
-    (add-watch state (list this key)
-      (fn [_ _ oldv newv]
-        (when (not= oldv newv)
-          (callback key this oldv newv))))
+    (vswap! watch-fns assoc key callback)
     this)
 
   (-remove-watch [this key]
-    (remove-watch state (list this key))
+    (vswap! watch-fns dissoc key)
     this)
 
   IHash
