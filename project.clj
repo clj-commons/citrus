@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0" :scope "provided"]
-                 [org.clojure/clojurescript "1.10.238" :scope "provided"]
+                 [org.clojure/clojurescript "1.10.339" :scope "provided"]
                  [rum "0.11.2"]]
 
   :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
