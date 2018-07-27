@@ -64,6 +64,7 @@
     event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
   [reconciler controller event & args]
+  {:pre [(instance? r/Reconciler reconciler)]}
   (r/dispatch! reconciler controller event args))
 
 (defn dispatch-sync!
@@ -78,6 +79,7 @@
     event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
   [reconciler controller event & args]
+  {:pre [(instance? r/Reconciler reconciler)]}
   (r/dispatch-sync! reconciler controller event args))
 
 (defn broadcast!
@@ -91,6 +93,7 @@
     event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
   [reconciler event & args]
+  {:pre [(instance? r/Reconciler reconciler)]}
   (r/broadcast! reconciler event args))
 
 (defn broadcast-sync!
@@ -104,6 +107,7 @@
     event      - a dispatch value of a method defined in the controller
     args       - arguments to be passed into the controller"
   [reconciler event & args]
+  {:pre [(instance? r/Reconciler reconciler)]}
   (r/broadcast-sync! reconciler event args))
 
 
@@ -120,4 +124,5 @@
   ([reconciler path]
    (subscription reconciler path identity))
   ([reconciler path reducer]
+   {:pre [(instance? r/Reconciler reconciler)]}
    (c/reduce-cursor-in reconciler path reducer)))

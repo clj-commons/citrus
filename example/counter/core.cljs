@@ -6,8 +6,16 @@
             [cljs.spec.alpha :as s]
             [expound.alpha :as expound]))
 
+;;
+;; enable printing readable specs
+;;
+
 (s/check-asserts true)
 (set! s/*explain-out* expound/printer)
+
+;;
+;; spec effects
+;;
 
 (s/def :http/url string?)
 (s/def :http/on-ok keyword?)
@@ -62,6 +70,7 @@
                            :border        "1px solid blue"}}]
       [:button {:on-click #(citrus/dispatch! r :github :fetch-repos @username)
                 :style    {:border-radius    "5px"
+                           :outline          "none"
                            :font-size        "11px"
                            :background-color "blue"
                            :color            "#fff"
