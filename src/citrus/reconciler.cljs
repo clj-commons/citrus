@@ -80,9 +80,10 @@
                                {}
                                cofx)
                         effects (ctrl st cofx)]
-                    (m/doseq [[id effect] (dissoc effects :state)]
-                             (when-let [handler (get effect-handlers id)]
-                               (handler this cname effect)))
+                    (m/doseq [effect (dissoc effects :state)]
+                      (let [[id effect] effect]
+                        (when-let [handler (get effect-handlers id)]
+                          (handler this cname effect))))
                     (if (contains? effects :state)
                       (recur (assoc st cname (:state effects)) events)
                       (recur st events)))
@@ -98,8 +99,9 @@
                  {}
                  cofx)
           effects (ctrl event args (get @state cname) cofx)]
-      (m/doseq [[id effect] effects]
-        (let [handler (get effect-handlers id)]
+      (m/doseq [effect effects]
+        (let [[id effect] effect
+              handler (get effect-handlers id)]
           (cond
             (= id :state) (swap! state assoc cname effect)
             handler (handler this cname effect)

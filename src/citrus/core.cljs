@@ -47,8 +47,9 @@
       (add-watch state (list rec :watch-fns)
                  (fn [_ _ oldv newv]
                    (when (not= oldv newv)
-                     (m/doseq [[k watch-fn] @watch-fns]
-                       (watch-fn k rec oldv newv)))))
+                     (m/doseq [w @watch-fns]
+                       (let [[k watch-fn] w]
+                         (watch-fn k rec oldv newv))))))
       rec)))
 
 (defn dispatch!
