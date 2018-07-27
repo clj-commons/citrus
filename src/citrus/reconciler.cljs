@@ -1,5 +1,6 @@
 (ns citrus.reconciler
-  (:require-macros [citrus.macros :as m]))
+  (:require-macros [citrus.macros :as m])
+  (:require [cljs.spec.alpha :as s]))
 
 (defn- queue-effects! [queue f]
   (vswap! queue conj f))
@@ -87,6 +88,9 @@
                         effects (ctrl st cofx)]
                     (m/doseq [effect (dissoc effects :state)]
                       (let [[id effect] effect]
+                        (when (s/check-asserts?)
+                          (when-let [spec (s/get-spec id)]
+                            (s/assert spec effect)))
                         (when-let [handler (get effect-handlers id)]
                           (handler this cname effect))))
                     (if (contains? effects :state)
@@ -112,6 +116,9 @@
       (m/doseq [effect effects]
         (let [[id effect] effect
               handler (get effect-handlers id)]
+          (when (s/check-asserts?)
+            (when-let [spec (s/get-spec id)]
+              (s/assert spec effect)))
           (cond
             (= id :state) (swap! state assoc cname effect)
             handler (handler this cname effect)
