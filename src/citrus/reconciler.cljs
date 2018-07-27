@@ -58,6 +58,10 @@
 
   IReconciler
   (dispatch! [this cname event args]
+    (assert (contains? controllers cname) (str "Controller " cname " is not found"))
+    (assert (-> (get controllers cname) methods (contains? event))
+            (str "Controller " cname " doesn't declare " event " method"))
+
     (queue-effects!
       queue
       [cname event #((get controllers cname) event args (get %1 cname) %2)])
@@ -91,6 +95,10 @@
           (reset! state next-state)))))
 
   (dispatch-sync! [this cname event args]
+    (assert (contains? controllers cname) (str "Controller " cname " is not found"))
+    (assert (-> (get controllers cname) methods (contains? event))
+            (str "Controller " cname " doesn't declare " event " method"))
+
     (let [ctrl (get controllers cname)
           cofx (get-in (.-meta ctrl) [:citrus event :cofx])
           cofx (reduce
