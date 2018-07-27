@@ -24,16 +24,24 @@
   Returned value supports deref, watches and metadata.
   The only supported option is `:meta`"
   [{:keys [state controllers effect-handlers co-effects batched-updates chunked-updates]} & {:as options}]
-  (r/Reconciler.
-    controllers
-    effect-handlers
-    co-effects
-    state
-    (volatile! [])
-    (volatile! nil)
-    (or batched-updates {:schedule-fn js/requestAnimationFrame :release-fn js/cancelAnimationFrame})
-    chunked-updates
-    (:meta options)))
+  (let [watch-fns (volatile! {})
+        rec       (r/->Reconciler
+                    controllers
+                    effect-handlers
+                    co-effects
+                    state
+                    (volatile! [])
+                    (volatile! nil)
+                    (or batched-updates {:schedule-fn js/requestAnimationFrame :release-fn js/cancelAnimationFrame})
+                    chunked-updates
+                    (:meta options)
+                    watch-fns)]
+    (add-watch state (list rec :watch-fns)
+               (fn [_ _ oldv newv]
+                 (when (not= oldv newv)
+                   (doseq [[k watch-fn] @watch-fns]
+                     (watch-fn k rec oldv newv)))))
+    rec))
 
 (defn dispatch!
   "Invoke an event on particular controller asynchronously
