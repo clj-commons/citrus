@@ -1,3 +1,9 @@
+## 3.2.0
+- Add more tests @DjebbZ
+- Add a single watch to the state per reconciler @DjebbZ
+- Add assertions for dispatching functions
+- Assert speced effects when corresponding spec exists
+
 ## 3.1.0
 - Added deps.edn
 - Rum 0.11.2
