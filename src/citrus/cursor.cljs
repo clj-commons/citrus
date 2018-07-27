@@ -1,5 +1,4 @@
-(ns citrus.cursor
-  (:require [goog.object :as gobj]))
+(ns citrus.cursor)
 
 (deftype ReduceCursor [ref path reducer meta]
   Object

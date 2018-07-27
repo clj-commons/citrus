@@ -59,6 +59,7 @@
   IReconciler
   (dispatch! [this cname event args]
     (assert (contains? controllers cname) (str "Controller " cname " is not found"))
+    (assert (some? event) (str "Controller " cname " was called without event name"))
     (assert (-> (get controllers cname) methods (contains? event))
             (str "Controller " cname " doesn't declare " event " method"))
 
@@ -96,6 +97,7 @@
 
   (dispatch-sync! [this cname event args]
     (assert (contains? controllers cname) (str "Controller " cname " is not found"))
+    (assert (some? event) (str "Controller " cname " was called without event name"))
     (assert (-> (get controllers cname) methods (contains? event))
             (str "Controller " cname " doesn't declare " event " method"))
 
