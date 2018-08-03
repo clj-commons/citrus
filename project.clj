@@ -52,4 +52,6 @@
                                :main          citrus.test-runner
                                :optimizations :none}}]}
 
+  :figwheel {:server-port 3002}
+
   :doo {:paths {:karma "./node_modules/karma/bin/karma"}})

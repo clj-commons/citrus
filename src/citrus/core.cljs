@@ -28,13 +28,15 @@
 
   Returned value supports deref, watches and metadata.
   The only supported option is `:meta`"
-  [{:keys [state controllers effect-handlers co-effects batched-updates chunked-updates]
-    :or   {batched-updates -default-batched-updates}}
+  [{:keys        [state controllers effect-handlers co-effects batched-updates chunked-updates]
+    :citrus/keys [handler]
+    :or          {batched-updates -default-batched-updates}}
    & {:as options}]
   (binding []
     (let [watch-fns (volatile! {})
           rec (r/->Reconciler
                 controllers
+                handler
                 effect-handlers
                 co-effects
                 state

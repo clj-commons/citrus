@@ -30,23 +30,41 @@
 
 (defmulti control-github (fn [event] event))
 
-(defmethod control-github :init []
-  {:state {:repos    []
-           :loading? false
-           :error    nil}})
+(defmethod control-github :init [_ _ state]
+  (let [state (assoc state :github {:repos    []
+                                    :loading? false
+                                    :error    nil})]
+    {:state state}))
 
 (defmethod control-github :fetch-repos [_ [username] state]
   {:effect/http {:url       (str "https://api.github.com/users/" username "/repos")
                  :on-ok     :fetch-repos-ok
                  :on-failed :fetch-repos-failed}
-   :state       (assoc state :loading? true :error nil)})
+   :state       (-> state
+                    (assoc-in [:github :error] nil)
+                    (assoc-in [:github :loading?] true))})
 
 (defmethod control-github :fetch-repos-ok [_ [resp] state]
-  {:state (assoc state :repos resp :loading? false)})
+  {:state (-> state
+              (assoc-in [:github :repos] resp)
+              (assoc-in [:github :loading?] false))})
 
 (defmethod control-github :fetch-repos-failed [_ [error] state]
-  {:state (assoc state :repos [] :error (.-message error) :loading? false)})
+  {:state (-> state
+              (assoc-in [:github :repos] [])
+              (assoc-in [:github :error] (.-message error))
+              (assoc-in [:github :loading?] false))})
 
+(def controllers
+  {:github control-github})
+
+(defn handler [ctrl event args state cofx]
+  (let [ctrl (get controllers ctrl)]
+    (ctrl event args state cofx)))
+
+(defn broadcast-sync! [r event & args]
+  (doseq [ctrl (keys controllers)]
+    (citrus/dispatch-sync! r ctrl event args)))
 
 ;;
 ;; define UI component
@@ -113,11 +131,11 @@
 (defonce reconciler
          (citrus/reconciler
            {:state           (atom {})
-            :controllers     {:github control-github}
+            :citrus/handler  handler
             :effect-handlers {:effect/http http}}))
 
 ;; initialize controllers
-(defonce init-ctrl (citrus/broadcast-sync! reconciler :init))
+(defonce init-ctrl (broadcast-sync! reconciler :init))
 
 ;; render
 (rum/mount (App reconciler)
