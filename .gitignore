@@ -14,3 +14,5 @@ pom.xml.asc
 node_modules/
 out/
 .cpcache/
+resources/public/js/
+*.log
