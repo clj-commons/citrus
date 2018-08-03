@@ -20,7 +20,7 @@
   (testing "Should populate state with resolved data after dereferencing"
     (let [state (atom {})]
       @(resolver/make-resolver state {:path (constantly 1)} [:path] nil)
-      (is (= @state) {:path 1})))
+      (is (= @state {:path 1}))))
   (testing "Should populate state with resolved data after dereferencing given nested path"
     (let [state (atom {})]
       @(resolver/make-resolver state {:path (constantly {:value 1})} [:path :value] nil)
