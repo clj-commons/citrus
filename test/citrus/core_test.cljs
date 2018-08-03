@@ -82,7 +82,7 @@
 
   (testing "dispatch-sync! a non-existing event fails"
     (is (thrown-with-msg? js/Error
-                          #"No method .* for dispatch value: :non-existing-event"
+                          #"Assert failed: Controller :test doesn't declare :non-existing-event method"
                           (citrus/dispatch-sync! r :test :non-existing-event)))))
 
 
@@ -101,7 +101,7 @@
 
   (testing "broadcast-sync! a non-existing event fails"
     (is (thrown-with-msg? js/Error
-                          #"No method .* for dispatch value: :non-existing-event"
+                          #"Assert failed: Controller :test doesn't declare :non-existing-event method"
                           (citrus/broadcast-sync! r :non-existing-event)))))
 
 
@@ -123,13 +123,9 @@
                                             (done)))))
 
   (testing "dispatch! an non-existing event fails"
-    (let [err-handler (fn [err]
-                        (is (re-find #"No method .* for dispatch value: :non-existing-dispatch" (.toString err))))]
-      (obj/set js/window "onerror" err-handler)
-      (citrus/dispatch! r :test :non-existing-dispatch)
-      (async done (js/requestAnimationFrame (fn []
-                                                (obj/set js/window "onerror" nil)
-                                                (done)))))))
+    (is (thrown-with-msg? js/Error
+                          #"Assert failed: Controller :test doesn't declare :non-existing-dispatch method"
+                          (citrus/dispatch! r :test :non-existing-dispatch)))))
 
 
 (deftest broadcast!
@@ -154,13 +150,9 @@
                                             (done)))))
 
   (testing "broadcast! an non-existing event fails"
-    (let [err-handler (fn [err]
-                        (is (re-find #"No method .* for dispatch value: :non-existing-broadcast" (.toString err))))]
-      (obj/set js/window "onerror" err-handler)
-      (citrus/broadcast! r :non-existing-broadcast)
-      (async done (js/requestAnimationFrame (fn []
-                                              (obj/set js/window "onerror" nil)
-                                              (done)))))))
+    (is (thrown-with-msg? js/Error
+                          #"Assert failed: Controller :test doesn't declare :non-existing-broadcast method"
+                          (citrus/broadcast! r :non-existing-broadcast)))))
 
 (deftest dispatch-nil-state-issue-20
   ;https://github.com/roman01la/citrus/issues/20
@@ -253,7 +245,7 @@
       (is (nil? @sub))))
 
   (testing "an asynchronous scheduler updates state asynchronously"
-    (let [async-delay 50 ;; in ms
+    (let [async-delay 50                                    ;; in ms
           r (citrus/reconciler {:state           (atom {:test :initial-state})
                                 :controllers     {:test test-controller}
                                 :batched-updates {:schedule-fn (fn [f] (js/setTimeout f async-delay)) :release-fn (fn [id] (js/clearTimeout id))}})
