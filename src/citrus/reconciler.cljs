@@ -149,12 +149,12 @@
 
   (broadcast! [this event args]
     (if (fn? handler)
-      (js/console.error "broadcast! doesn't work with :citrus/handler, do it manually on your side")
+      (throw (js/Error. "broadcast! doesn't work with :citrus/handler, do it manually on your side"))
       (m/doseq [controller (keys controllers)]
         (dispatch! this controller event args))))
 
   (broadcast-sync! [this event args]
     (if (fn? handler)
-      (js/console.error "broadcast-sync! doesn't work with :citrus/handler, do it manually on your side")
+      (throw (js/Error. "broadcast-sync! doesn't work with :citrus/handler, do it manually on your side"))
       (m/doseq [controller (keys controllers)]
         (dispatch-sync! this controller event args)))))
