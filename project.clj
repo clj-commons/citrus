@@ -21,7 +21,7 @@
 
   :aliases {"cljs-test" ["do"
                          ["clean"]
-                         ["doo" "firefox" "test"]]}
+                         ["doo" "chrome" "test"]]}
 
   :cljsbuild {:builds
               [{:id           "dev"
