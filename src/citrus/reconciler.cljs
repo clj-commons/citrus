@@ -61,8 +61,6 @@
   (dispatch! [this cname event args]
     (assert (contains? controllers cname) (str "Controller " cname " is not found"))
     (assert (some? event) (str "Controller " cname " was called without event name"))
-    (assert (-> (get controllers cname) methods (contains? event))
-            (str "Controller " cname " doesn't declare " event " method"))
 
     (queue-effects!
       queue
@@ -102,8 +100,6 @@
   (dispatch-sync! [this cname event args]
     (assert (contains? controllers cname) (str "Controller " cname " is not found"))
     (assert (some? event) (str "Controller " cname " was called without event name"))
-    (assert (-> (get controllers cname) methods (contains? event))
-            (str "Controller " cname " doesn't declare " event " method"))
 
     (let [ctrl (get controllers cname)
           cofx (get-in (.-meta ctrl) [:citrus event :cofx])
