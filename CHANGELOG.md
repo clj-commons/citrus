@@ -1,3 +1,6 @@
+## 3.2.1
+- Removed assert that checked `-methods` on a dispatching function which implied the function to be a multimethod
+
 ## 3.2.0
 - Add more tests @DjebbZ
 - Add a single watch to the state per reconciler @DjebbZ
