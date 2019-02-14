@@ -497,6 +497,9 @@ Testing state management logic in *Citrus* is really simple. Here's what can be 
 
 (defmethod control :dec [_ _ counter]
   {:state (dec counter)})
+
+(defmethod control :reset-to [_ [new-value] counter]
+  {:state new-value})
 ```
 
 ```clojure
@@ -519,7 +522,9 @@ Testing state management logic in *Citrus* is really simple. Here's what can be 
   (testing "Should return incremented value"
     (is (= (counter/control :inc nil 0) {:state 1})))
   (testing "Should return decremented value"
-    (is (= (counter/control :dec nil 1) {:state 0}))))
+    (is (= (counter/control :dec nil 1) {:state 0})))
+  (testing "Should return provided value"
+    (is (= (counter/control :reset-to [5] nil) {:state 5}))))
 
 (deftest counter-state
   (testing "Should initialize state value with 0"
@@ -530,7 +535,10 @@ Testing state management logic in *Citrus* is really simple. Here's what can be 
     (is (= (:counter @state) 1)))
   (testing "Should deccrement state value"
     (citrus/dispatch-sync! r :counter :dec)
-    (is (= (:counter @state) 0))))
+    (is (= (:counter @state) 0)))
+  (testing "Should reset state value"
+    (citrus/dispatch-sync! r :counter :reset-to 5)
+    (is (= (:counter @state) 5))))
 ```
 
 ## Roadmap
