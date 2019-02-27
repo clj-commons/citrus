@@ -10,7 +10,7 @@
       (when state
         (swap! state assoc key data))
       (if reducer
-        (-> data reducer (get-in path))
+        (reducer (get-in data path))
         (get-in data path))))
 
   clojure.lang.IRef
