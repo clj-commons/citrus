@@ -29,4 +29,16 @@
 (deftest subscription
   (testing "Should return Resolver instance"
     (is (instance? citrus.resolver.Resolver
-                   (citrus/subscription (citrus/reconciler {}) [:path])))))
+                   (citrus/subscription (citrus/reconciler {}) [:path]))))
+  (testing "Should return nested data when a nested path is supplied"
+    (let [sub (citrus/subscription (citrus/reconciler {:state (atom {})
+                                                       :resolvers {:a (constantly {:b [1 2 3]})}}) [:a :b])]
+      (is (= @sub [1 2 3]))))
+  (testing "Should return derived data when a reducer function is supplied"
+    (let [sub (citrus/subscription (citrus/reconciler {:state (atom {})
+                                                       :resolvers {:a (constantly {:b [1 2 3]})}}) [:a] map?)]
+      (is (= @sub true))))
+  (testing "Should return derived data when a reducer function *and* nested data are supplied"
+    (let [sub (citrus/subscription (citrus/reconciler {:state (atom {})
+                                                       :resolvers {:a (constantly {:b [1 2 3]})}}) [:a :b] count)]
+      (is (= @sub 3)))))

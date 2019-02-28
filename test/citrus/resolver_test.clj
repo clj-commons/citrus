@@ -17,6 +17,9 @@
   (testing "Should apply reducer to resolved data when dereferenced"
     (let [r (resolver/make-resolver (atom {}) {:path (constantly 1)} [:path] inc)]
       (is (= @r 2))))
+  (testing "Should apply reducer to nested resolved data when dereferenced"
+    (let [r (resolver/make-resolver (atom {}) {:path (constantly {:value 1})} [:path :value] inc)]
+      (is (= @r 2))))
   (testing "Should populate state with resolved data after dereferencing"
     (let [state (atom {})]
       @(resolver/make-resolver state {:path (constantly 1)} [:path] nil)
@@ -24,4 +27,8 @@
   (testing "Should populate state with resolved data after dereferencing given nested path"
     (let [state (atom {})]
       @(resolver/make-resolver state {:path (constantly {:value 1})} [:path :value] nil)
+      (is (= @state {:path {:value 1}}))))
+  (testing "Should populate state with resolved data after dereferencing given nested path and a reducer function"
+    (let [state (atom {})]
+      @(resolver/make-resolver state {:path (constantly {:value 1})} [:path :value] inc)
       (is (= @state {:path {:value 1}})))))
