@@ -1,3 +1,6 @@
+## 3.2.2
+- Fix bug where subscriptions with both nested path and reducer functions worked differently on CLJ and CLJS @DjebbZ
+
 ## 3.2.1
 - Removed assert that checked `-methods` on a dispatching function which implied the function to be a multimethod
 
