@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/roman01la/citrus.git"
+    "url": "git+https://github.com/clj-commons/citrus.git"
   },
   "author": "Roman Liutikov",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
-    "url": "https://github.com/roman01la/citrus/issues"
+    "url": "https://github.com/clj-commons/citrus/issues"
   },
-  "homepage": "https://github.com/roman01la/citrus#readme",
+  "homepage": "https://github.com/clj-commons/citrus#readme",
   "devDependencies": {
     "karma": "^2.0.4",
     "karma-chrome-launcher": "^2.2.0",
