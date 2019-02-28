@@ -1,4 +1,5 @@
 *__Scrum is now Citrus__ as of v3.0.0 to avoid confusion with Agile term “Scrum”. Older versions are still available under the old name **Scrum**. To migrate to v3.0.0+ replace all occurrences of **scrum** with **citrus**.*
+
 [![Clojars Project](https://img.shields.io/clojars/v/clj-commons/citrus.svg)](https://clojars.org/clj-commons/citrus)
 
 <img src="logo.png" width="252" height="35" alt="citrus logo" />
