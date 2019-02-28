@@ -6,7 +6,7 @@
 
 > I am a big fan of Rum the library, as well as Rum the liquor. In almost every classic Rum-based cocktail, citrus is used as an ingredient to 1) pair with the sugar-based flavor of the Rum and 2) smooth the harshness of the alcohol flavor.
   Wherever you find Rum, it is almost always accompanied with some form of citrus to control and balance the cocktail. I think it is very fitting for how this library pairs with Rum.
->  — [@oakmac](https://github.com/roman01la/citrus/issues/16#issuecomment-324111509)
+>  — [@oakmac](https://github.com/clj-commons/citrus/issues/16#issuecomment-324111509)
 
 <a href="http://clojurians.net/">
   <img src="slack.png" width="64" height="64" />
@@ -67,7 +67,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
-Add to *project.clj* / *build.boot*: `[org.roman01la/citrus "3.2.1"]`
+Add to *project.clj* / *build.boot*: `[clj-commons/citrus "3.2.2"]`
 
 ## Usage
 ```clojure
@@ -427,7 +427,7 @@ If you want to display different data based on certain condition, such as user r
 
 ## Recipes
 
-- [Routing](https://github.com/roman01la/citrus/tree/master/recipes/routing)
+- [Routing](https://github.com/clj-commons/citrus/tree/master/recipes/routing)
 
 ## FAQ
 
