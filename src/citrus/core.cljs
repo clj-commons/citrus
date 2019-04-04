@@ -3,7 +3,8 @@
   (:require [citrus.reconciler :as r]
             [citrus.cursor :as c]))
 
-(def ^:private -default-batched-updates
+(defn- -get-default-batched-updates
+  []
   {:schedule-fn js/requestAnimationFrame
    :release-fn  js/cancelAnimationFrame})
 
@@ -28,8 +29,7 @@
 
   Returned value supports deref, watches and metadata.
   The only supported option is `:meta`"
-  [{:keys [state controllers effect-handlers co-effects batched-updates chunked-updates]
-    :or   {batched-updates -default-batched-updates}}
+  [{:keys [state controllers effect-handlers co-effects batched-updates chunked-updates]}
    & {:as options}]
   (binding []
     (let [watch-fns (volatile! {})
@@ -40,7 +40,7 @@
                 state
                 (volatile! [])
                 (volatile! nil)
-                batched-updates
+                (or batched-updates (-get-default-batched-updates))
                 chunked-updates
                 (:meta options)
                 watch-fns)]
