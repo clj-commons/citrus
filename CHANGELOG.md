@@ -1,3 +1,6 @@
+## 3.2.3
+- Don't evaluate default-batched-updates until necessary 0788a7f10
+
 ## 3.2.2
 - Fix bug where subscriptions with both nested path and reducer functions worked differently on CLJ and CLJS @DjebbZ
 
