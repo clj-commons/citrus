@@ -2,6 +2,7 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/clj-commons/citrus.svg)](https://clojars.org/clj-commons/citrus)
 [![cljdoc badge](https://cljdoc.org/badge/clj-commons/citrus)](https://cljdoc.org/d/clj-commons/citrus/CURRENT)
+[![CircleCI](https://circleci.com/gh/clj-commons/citrus.svg?style=svg)](https://circleci.com/gh/clj-commons/citrus)
 
 
 <img src="logo.png" width="252" height="35" alt="citrus logo" />
