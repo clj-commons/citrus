@@ -1,11 +1,12 @@
-(defproject clj-commons/citrus "3.2.3"
+(defproject nha/citrus "3.2.3"
   :description "State management library for Rum"
-  :url "https://github.com/clj-commons/citrus"
+  :url "https://github.com/nha/citrus"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.0" :scope "provided"]
                  [org.clojure/clojurescript "1.10.439" :scope "provided"]
-                 [rum "0.11.2"]]
+                 [manifold "0.1.8"]
+                 [rum "0.11.4"]]
 
   :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
             [lein-figwheel "0.5.15" :exclusions [org.clojure/clojure]]

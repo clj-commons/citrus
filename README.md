@@ -1,3 +1,7 @@
+FORK differences
+- controllers get the full state (BREAKING)
+- resolvers are asynchronous (manifold) and get better errors
+
 *__Scrum is now Citrus__ as of v3.0.0 to avoid confusion with Agile term “Scrum”. Older versions are still available under the old name **Scrum**. To migrate to v3.0.0+ replace all occurrences of **scrum** with **citrus**.*
 
 [![Clojars Project](https://img.shields.io/clojars/v/clj-commons/citrus.svg)](https://clojars.org/clj-commons/citrus)
@@ -72,7 +76,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
-Add to *project.clj* / *build.boot*: `[clj-commons/citrus "3.2.3"]`
+Add to *project.clj* / *build.boot*: `[nha/citrus "3.2.3"]`
 
 ## Usage
 ```clojure
@@ -409,10 +413,10 @@ If you want to display different data based on certain condition, such as user r
 (def common
   {:thirdparty-ads get-ads
    :promoted-products get-promoted})
-   
+
 (def anonymous-user
   {:top-products get-top-products})
-  
+
 (def returning-user
   {:suggested-products get-suggested-products})
 
@@ -451,7 +455,7 @@ But of course it is an idealistic way of building UI trees and in practice somet
 ;; which provides two React components: Provider and Consumer
 (def reconciler-context
   (js/React.createContext))
-  
+
 ;; provider function
 ;; that injects the reconciler
 (defn provide-reconciler [child]
@@ -467,7 +471,7 @@ But of course it is an idealistic way of building UI trees and in practice somet
     (.-Consumer reconciler-context)
     nil
     consumer-fn))
-    
+
 (rum/defc MyApp []
   ;; "consume" reconciler instance
   ;; in arbitrary nested component
@@ -475,7 +479,7 @@ But of course it is an idealistic way of building UI trees and in practice somet
     (fn [r]
       [:button {:on-click #(citrus/dispatch! r :some :event)}
         "Push"])))
-    
+
 (rum/mount
   (provide-reconciler (MyApp)) ;; "inject" reconciler instance
   (dom/getElement "root"))
