@@ -92,7 +92,7 @@
                         (when-let [handler (get effect-handlers id)]
                           (handler this cname effect))))
                     (if (contains? effects :state)
-                      (recur (assoc st cname (:state effects)) events)
+                      (recur (:state effects) events)
                       (recur st events)))
                   st))]
           (reset! state next-state)))))
@@ -108,7 +108,7 @@
                    (assoc cofx key (apply (co-effects key) args)))
                  {}
                  cofx)
-          effects (ctrl event args (get @state cname) cofx)]
+          effects (ctrl event args @state cofx)]
       (m/doseq [effect effects]
         (let [[id effect] effect
               handler (get effect-handlers id)]
@@ -116,7 +116,7 @@
             (when-let [spec (s/get-spec id)]
               (s/assert spec effect)))
           (cond
-            (= id :state) (swap! state assoc cname effect)
+            (= id :state) (reset! state effect)
             handler (handler this cname effect)
             :else nil)))))
 
