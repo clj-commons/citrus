@@ -20,7 +20,29 @@
   (broadcast! [this event args])
   (broadcast-sync! [this event args]))
 
-(deftype Reconciler [controllers effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
+(defn citrus-default-handler [reconciler ctrl event-key event-args]
+  (let [ctrl-fn (get (.-controllers reconciler) ctrl)
+        cofx (get-in (.-meta ctrl) [:citrus event-key :cofx])
+        cofx (reduce
+               (fn [cofx [key & args]]
+                 (assoc cofx key (apply ((.-co_effects reconciler) key) args)))
+               {}
+               cofx)
+        state @reconciler
+        effects (ctrl-fn event-key event-args (get state ctrl) cofx)]
+    (js/console.log "running-citrus-default-handler" ctrl event-key)
+    (m/doseq [effect (dissoc effects :state)]
+      (let [[eff-type effect] effect]
+        (when (s/check-asserts?)
+          (when-let [spec (s/get-spec eff-type)]
+            (s/assert spec effect)))
+        (when-let [handler (get (.-effect_handlers reconciler) eff-type)]
+          (handler reconciler ctrl effect))))
+    (if (contains? effects :state)
+      (assoc state ctrl (:state effects))
+      state)))
+
+(deftype Reconciler [#_default-handler controllers effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
 
   Object
   (equiv [this other]
@@ -62,63 +84,29 @@
     (assert (contains? controllers cname) (str "Controller " cname " is not found"))
     (assert (some? event) (str "Controller " cname " was called without event name"))
 
-    (queue-effects!
-      queue
-      [cname event #((get controllers cname) event args (get %1 cname) %2)])
+    (queue-effects! queue [cname event args])
 
     (schedule-update!
       batched-updates
       scheduled?
       (fn []
         (let [events @queue
-              _ (clear-queue! queue)
-              next-state
-              (loop [st @state
-                     [event & events] events]
-                (if (seq event)
-                  (let [[cname ename ctrl] event
-                        cofx (get-in (.-meta ctrl) [:citrus ename :cofx])
-                        cofx (reduce
-                               (fn [cofx [key & args]]
-                                 (assoc cofx key (apply (co-effects key) args)))
-                               {}
-                               cofx)
-                        effects (ctrl st cofx)]
-                    (m/doseq [effect (dissoc effects :state)]
-                      (let [[id effect] effect]
-                        (when (s/check-asserts?)
-                          (when-let [spec (s/get-spec id)]
-                            (s/assert spec effect)))
-                        (when-let [handler (get effect-handlers id)]
-                          (handler this cname effect))))
-                    (if (contains? effects :state)
-                      (recur (assoc st cname (:state effects)) events)
-                      (recur st events)))
-                  st))]
-          (reset! state next-state)))))
+              _ (clear-queue! queue)]
+          (reset! state
+                  (loop [st @state
+                         [event & events] events]
+                    (if (seq event)
+                      (let [[ctrl event args] event]
+                        (recur (citrus-default-handler this ctrl event args) events))
+                      st)))))))
 
   (dispatch-sync! [this cname event args]
     (assert (contains? controllers cname) (str "Controller " cname " is not found"))
     (assert (some? event) (str "Controller " cname " was called without event name"))
 
-    (let [ctrl (get controllers cname)
-          cofx (get-in (.-meta ctrl) [:citrus event :cofx])
-          cofx (reduce
-                 (fn [cofx [key & args]]
-                   (assoc cofx key (apply (co-effects key) args)))
-                 {}
-                 cofx)
-          effects (ctrl event args (get @state cname) cofx)]
-      (m/doseq [effect effects]
-        (let [[id effect] effect
-              handler (get effect-handlers id)]
-          (when (s/check-asserts?)
-            (when-let [spec (s/get-spec id)]
-              (s/assert spec effect)))
-          (cond
-            (= id :state) (swap! state assoc cname effect)
-            handler (handler this cname effect)
-            :else nil)))))
+    (let [ret (citrus-default-handler this cname event args)]
+      (when-let [new-ctrl-state (:state ret)]
+        (swap! state assoc cname new-ctrl-state))))
 
   (broadcast! [this event args]
     (m/doseq [controller (keys controllers)]
