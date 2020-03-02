@@ -6,7 +6,7 @@ by [the need to access all controllers state in event
 handlers](https://github.com/clj-commons/citrus/issues/50) but theoretically
 they open up Citrus' event handling to many more customizations. 
 
-:warn: Default handlers are experimental and subject to change. Please
+:warning: Default handlers are experimental and subject to change. Please
 report your experiences using them [in this GitHub issue]().
 
 ### Usage 
