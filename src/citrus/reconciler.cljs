@@ -101,9 +101,8 @@
                       st)))))))
 
   (dispatch-sync! [this cname event args]
-    (when-let [new-state (default-handler this cname event args)]
-      (reset! state new-state)))
     (assert (some? event) (str "dispatch! was called without event name:" (pr-str [cname event args])))
+    (reset! (default-handler this cname event args) new-state))
 
   (broadcast! [this event args]
     (m/doseq [controller (keys controllers)]
