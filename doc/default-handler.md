@@ -16,14 +16,21 @@ pass a default handler.
 
 - `:default-handler` should be a function like 
   ```clj
-  (fn handler [reconciler ctrl-key event-key event-args])
+  (fn handler [reconciler events])
+  ;; where `events` is a list of event tuples like this one
+  [[ctrl-key event-key event-args]   ; event 1
+   [ctrl-key event-key event-args]]  ; event 2
   ```
 
 - When not passing in anything for this option, the handler will default to
   `citrus.reconciler/citrus-default-handler`, which behaves identical to the
   regular event handling of Citrus as of `v3.2.3`.
-- The handler function is expected to return a new value for the `:state` atom
-  of the reconciler.
+- The default handler will process all events of the current batch before
+  resetting the reconciler `state`. This reduces the number of watch triggers
+  for subscriptions and similar tools using `add-watch` with the reconciler
+  `state` atom.
+
+### Writing your own handler
 
 ### Recipes
 
@@ -41,49 +48,11 @@ By implementing a new default handler based on [`citrus.reconciler/citrus-defaul
 > them.
 
 ```diff
--(defn citrus-default-handler
--  "Implements Citrus' default event handling (as of 3.2.3)."
-+(defn pass-full-state-handler
-+  "Implements Citrus' default event handling (as of 3.2.3) but passes
-+  the applications entire state as a fifth argument to controller methods."
-   [reconciler ctrl event-key event-args]
-   (assert (contains? (.-controllers reconciler) ctrl)
-           (str "Controller " ctrl " is not found"))
-   (let [ctrl-fn (get (.-controllers reconciler) ctrl)
-         cofx (get-in (.-meta ctrl) [:citrus event-key :cofx])
-         cofx (reduce
-                (fn [cofx [key & args]]
-                  (assoc cofx key (apply ((.-co_effects reconciler) key) args)))
-                {}
-                cofx)
-         state @reconciler
--        effects (ctrl-fn event-key event-args (get state ctrl) cofx)]
-+        effects (ctrl-fn event-key event-args (get state ctrl) cofx state)]
-     (m/doseq [effect (dissoc effects :state)]
-       (let [[eff-type effect] effect]
-         (when (s/check-asserts?)
-           (when-let [spec (s/get-spec eff-type)]
-             (s/assert spec effect)))
-         (when-let [handler (get (.-effect_handlers reconciler) eff-type)]
-           (handler reconciler ctrl effect))))
-     (if (contains? effects :state)
-       (assoc state ctrl (:state effects))
-       state)))
 ```
 
 #### Non-multimethod based handlers
 
-TBD 
+With the ability to override the `default-handler` the `controller` and `effect-handlers` options almost become superfluous as all behavior influenced by these options can now also be controlled via `default-handler`. 
 
 - include mixture w/ controller based handlers
 - note how non-controller handlers won't work with broadcast
-
-### Appendix
-
-#### Why return `state` from default handler instead of calling `reset!` within handler?
-
-Citrus processes events that are dispatched asynchronously in batches. As
-Citrus processes one batch of events the new app state is computed and then
-`reset!` into the state atom.  If handlers would call `reset!` themselves this
-could in theory cause multiple recomputations of subscriptions. More
-investigation would be useful to diagnose if this is an actual issue.
