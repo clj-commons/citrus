@@ -1,6 +1,7 @@
 (ns citrus.reconciler
   (:require-macros [citrus.macros :as m])
-  (:require [cljs.spec.alpha :as s]))
+  (:require [cljs.spec.alpha :as s]
+            [goog.object :as gobj]))
 
 (defn- queue-effects! [queue f]
   (vswap! queue conj f))
@@ -19,11 +20,14 @@
   [reconciler ctrl event-key event-args]
   (assert (contains? (.-controllers reconciler) ctrl)
           (str "Controller " ctrl " is not found"))
-  (let [ctrl-fn (get (.-controllers reconciler) ctrl)
+  (let [controllers (gobj/get reconciler "controllers")
+        co-effects (gobj/get reconciler "co_effects")
+        effect-handlers (gobj/get reconciler "effect_handlers")
+        ctrl-fn (get controllers ctrl)
         cofx (get-in (.-meta ctrl) [:citrus event-key :cofx])
         cofx (reduce
-               (fn [cofx [key & args]]
-                 (assoc cofx key (apply ((.-co_effects reconciler) key) args)))
+               (fn [cofx [k & args]]
+                 (assoc cofx k (apply (co-effects k) args)))
                {}
                cofx)
         state @reconciler
@@ -33,7 +37,7 @@
         (when (s/check-asserts?)
           (when-let [spec (s/get-spec eff-type)]
             (s/assert spec effect)))
-        (when-let [handler (get (.-effect_handlers reconciler) eff-type)]
+        (when-let [handler (get effect-handlers eff-type)]
           (handler reconciler ctrl effect))))
     (if (contains? effects :state)
       (assoc state ctrl (:state effects))
