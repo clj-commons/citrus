@@ -39,6 +39,37 @@ By implementing a new default handler based on [`citrus.reconciler/citrus-defaul
 > issue](https://github.com/clj-commons/citrus/issues/51) if you are using
 > them.
 
+```diff
+-(defn citrus-default-handler
+-  "Implements Citrus' default event handling (as of 3.2.3)."
++(defn pass-full-state-handler
++  "Implements Citrus' default event handling (as of 3.2.3) but passes
++  the applications entire state as a fifth argument to controller methods."
+   [reconciler ctrl event-key event-args]
+   (assert (contains? (.-controllers reconciler) ctrl)
+           (str "Controller " ctrl " is not found"))
+   (let [ctrl-fn (get (.-controllers reconciler) ctrl)
+         cofx (get-in (.-meta ctrl) [:citrus event-key :cofx])
+         cofx (reduce
+                (fn [cofx [key & args]]
+                  (assoc cofx key (apply ((.-co_effects reconciler) key) args)))
+                {}
+                cofx)
+         state @reconciler
+-        effects (ctrl-fn event-key event-args (get state ctrl) cofx)]
++        effects (ctrl-fn event-key event-args (get state ctrl) cofx state)]
+     (m/doseq [effect (dissoc effects :state)]
+       (let [[eff-type effect] effect]
+         (when (s/check-asserts?)
+           (when-let [spec (s/get-spec eff-type)]
+             (s/assert spec effect)))
+         (when-let [handler (get (.-effect_handlers reconciler) eff-type)]
+           (handler reconciler ctrl effect))))
+     (if (contains? effects :state)
+       (assoc state ctrl (:state effects))
+       state)))
+```
+
 #### Non-multimethod based handlers
 
 TBD 
