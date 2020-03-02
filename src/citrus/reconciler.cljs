@@ -84,7 +84,7 @@
 
   IReconciler
   (dispatch! [this cname event args]
-    (assert (some? event) (str "dispatch! was called without event name:" (pr-str cname event args)))
+    (assert (some? event) (str "dispatch! was called without event name:" (pr-str [cname event args])))
     (queue-effects! queue [cname event args])
     (schedule-update!
       batched-updates
@@ -101,9 +101,9 @@
                       st)))))))
 
   (dispatch-sync! [this cname event args]
-    (assert (some? event) (str "dispatch! was called without event name:" (pr-str cname event args)))
     (when-let [new-state (default-handler this cname event args)]
       (reset! state new-state)))
+    (assert (some? event) (str "dispatch! was called without event name:" (pr-str [cname event args])))
 
   (broadcast! [this event args]
     (m/doseq [controller (keys controllers)]
