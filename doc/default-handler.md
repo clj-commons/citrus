@@ -15,8 +15,9 @@ When constructing a reconciler the `:default-handler` option can be used to
 pass a default handler.
 
 - `:default-handler` should be a function like 
-
-	(fn handler [reconciler ctrl-key event-key event-args])
+  ```clj
+  (fn handler [reconciler ctrl-key event-key event-args])
+  ```
 
 - When not passing in anything for this option, the handler will default to
   `citrus.reconciler/citrus-default-handler`, which behaves identical to the
