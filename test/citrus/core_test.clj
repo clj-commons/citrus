@@ -1,5 +1,5 @@
 (ns citrus.core-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest testing is]]
             [citrus.core :as citrus]))
 
 (deftest reconciler

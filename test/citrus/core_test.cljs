@@ -11,7 +11,7 @@
     (let [r (citrus/reconciler {:state (atom {}) :controllers {}})]
       (is (instance? rec/Reconciler r)))))
 
-(deftest subscription
+(deftest subscription-resolver-instance
   (testing "Should return a Resolver instance"
     (let [r (citrus/reconciler {:state (atom {}) :controllers {}})]
       (is (instance? cur/ReduceCursor
