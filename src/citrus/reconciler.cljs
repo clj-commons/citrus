@@ -90,8 +90,8 @@
       batched-updates
       scheduled?
       (fn []
-        (let [events @queue
-              _ (clear-queue! queue)]
+        (let [events @queue]
+          (clear-queue! queue)
           (reset! state
                   (loop [st @state
                          [event & events] events]
