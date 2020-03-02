@@ -14,13 +14,11 @@
     (release-fn id))
   (vreset! scheduled? (schedule-fn f)))
 
-(defprotocol IReconciler
-  (dispatch! [this controller event args])
-  (dispatch-sync! [this controller event args])
-  (broadcast! [this event args])
-  (broadcast-sync! [this event args]))
-
-(defn citrus-default-handler [reconciler ctrl event-key event-args]
+(defn citrus-default-handler
+  "Implements Citrus' default event handling (as of 3.2.3)."
+  [reconciler ctrl event-key event-args]
+  (assert (contains? (.-controllers reconciler) ctrl)
+          (str "Controller " ctrl " is not found"))
   (let [ctrl-fn (get (.-controllers reconciler) ctrl)
         cofx (get-in (.-meta ctrl) [:citrus event-key :cofx])
         cofx (reduce
@@ -30,7 +28,6 @@
                cofx)
         state @reconciler
         effects (ctrl-fn event-key event-args (get state ctrl) cofx)]
-    (js/console.log "running-citrus-default-handler" ctrl event-key)
     (m/doseq [effect (dissoc effects :state)]
       (let [[eff-type effect] effect]
         (when (s/check-asserts?)
@@ -81,11 +78,8 @@
 
   IReconciler
   (dispatch! [this cname event args]
-    (assert (contains? controllers cname) (str "Controller " cname " is not found"))
-    (assert (some? event) (str "Controller " cname " was called without event name"))
-
+    (assert (some? event) (str "dispatch! was called without event name:" (pr-str cname event args)))
     (queue-effects! queue [cname event args])
-
     (schedule-update!
       batched-updates
       scheduled?
@@ -101,12 +95,9 @@
                       st)))))))
 
   (dispatch-sync! [this cname event args]
-    (assert (contains? controllers cname) (str "Controller " cname " is not found"))
-    (assert (some? event) (str "Controller " cname " was called without event name"))
-
-    (let [ret (citrus-default-handler this cname event args)]
-      (when-let [new-ctrl-state (:state ret)]
-        (swap! state assoc cname new-ctrl-state))))
+    (assert (some? event) (str "dispatch! was called without event name:" (pr-str cname event args)))
+    (when-let [new-state (citrus-default-handler this cname event args)]
+      (reset! state new-state)))
 
   (broadcast! [this event args]
     (m/doseq [controller (keys controllers)]
