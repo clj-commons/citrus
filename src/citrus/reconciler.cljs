@@ -39,7 +39,13 @@
       (assoc state ctrl (:state effects))
       state)))
 
-(deftype Reconciler [#_default-handler controllers effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
+(defprotocol IReconciler
+  (dispatch! [this controller event args])
+  (dispatch-sync! [this controller event args])
+  (broadcast! [this event args])
+  (broadcast-sync! [this event args]))
+
+(deftype Reconciler [controllers default-handler effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
 
   Object
   (equiv [this other]
@@ -91,12 +97,12 @@
                          [event & events] events]
                     (if (seq event)
                       (let [[ctrl event args] event]
-                        (recur (citrus-default-handler this ctrl event args) events))
+                        (recur (default-handler this ctrl event args) events))
                       st)))))))
 
   (dispatch-sync! [this cname event args]
     (assert (some? event) (str "dispatch! was called without event name:" (pr-str cname event args)))
-    (when-let [new-state (citrus-default-handler this cname event args)]
+    (when-let [new-state (default-handler this cname event args)]
       (reset! state new-state)))
 
   (broadcast! [this event args]
