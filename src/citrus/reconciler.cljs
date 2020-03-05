@@ -1,7 +1,6 @@
 (ns citrus.reconciler
   (:require-macros [citrus.macros :as m])
-  (:require [cljs.spec.alpha :as s]
-            [goog.object :as gobj]))
+  (:require [cljs.spec.alpha :as s]))
 
 (defn- queue-effects! [queue f]
   (vswap! queue conj f))
@@ -24,10 +23,10 @@
 
      [ctrl event-key event-args]"
   [reconciler events]
-  (let [controllers (gobj/get reconciler "controllers")
-        co-effects (gobj/get reconciler "co_effects")
-        effect-handlers (gobj/get reconciler "effect_handlers")
-        state-atom (gobj/get reconciler "state")]
+  (let [controllers (.-controllers reconciler)
+        co-effects (.-co_effects reconciler)
+        effect-handlers (.-effect_handlers reconciler)
+        state-atom (.-state reconciler)]
     (reset!
       state-atom
       (loop [state @reconciler
