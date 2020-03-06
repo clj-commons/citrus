@@ -52,7 +52,7 @@
                     (handler reconciler ctrl effect))))
               (if (contains? effects :state)
                 (recur (assoc state ctrl (:state effects)) events)
-                (recur state events))))))) ))
+                (recur state events)))))))))
 
 (defprotocol IReconciler
   (dispatch! [this controller event args])
