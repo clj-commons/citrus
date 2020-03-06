@@ -22,7 +22,7 @@
     config              - a map of
       state             - app state atom
       controllers       - a hash of state controllers
-      default-handler   - a function to handle incoming events (see docs)
+      default-handler   - a function to handle incoming events (see doc/default-handler.md)
       effect-handlers   - a hash of effects handlers
       batched-updates   - a hash of two functions used to batch reconciler updates, defaults to
                           `{:schedule-fn js/requestAnimationFrame :release-fn js/cancelAnimationFrame}`
