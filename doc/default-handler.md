@@ -38,9 +38,9 @@ by these options can now also be controlled via `default-handler`. Some ideas
 for things that are now possible to build on top of Citrus that previously
 weren't:
 
-- Mix controller handlers with custom event handling logic, e.g. any function. This could mean:
+- Mix controller handlers with custom event handling logic, i.e. any function. This could mean:
   - Having handlers that use [interceptors](https://github.com/metosin/sieppari) to customize their behavior
-  - Having handlers that can write to the full app state instead of a subtree (as with controllers)
+  - Having handlers that can write to the full app state instead of a subtree (in contrast to controllers that can only write to their respective subtree)
 - Completely replace Citrus multimethod dispatching with a custom handler registry
 
 > **Note** that breaking out of controllers as Citrus provides them impacts how
@@ -63,4 +63,47 @@ By implementing a new default handler based on [`citrus.reconciler/citrus-defaul
 > issue](https://github.com/clj-commons/citrus/issues/51) if you are using
 > them.
 
-:point_right: Here's [**a commit**](https://github.com/clj-commons/citrus/commit/a620e8e77a62b16a9d6006600cccd02dda82c046) that adapts Citrus' default handler to pass the reconciler's full state as the fourth argument.
+:point_right: Here's [**a commit**](https://github.com/clj-commons/citrus/commit/a620e8e77a62b16a9d6006600cccd02dda82c046) that adapts Citrus' default handler to pass the reconciler's full state as the fourth argument. Part of the diff is replicated below:
+
+```diff
+diff --git a/src/citrus/reconciler.cljs b/src/citrus/reconciler.cljs
+index f8de8c5..5a95a77 100644
+--- a/src/citrus/reconciler.cljs
++++ b/src/citrus/reconciler.cljs
+@@ -14,17 +14,15 @@
+     (release-fn id))
+   (vreset! scheduled? (schedule-fn f)))
+ 
+-(defn citrus-default-handler
+-  "Implements Citrus' default event handling (as of 3.2.3).
+-
+-  This function can be copied into your project and adapted to your needs.
++(defn adapted-default-handler
++  "An adapted event handler for Citrus that passes the entire reconciler
++  state as fourth argument to controller methods.
+ 
+   `events` is expected to be a list of events (tuples):
+ 
+      [ctrl event-key event-args]"
+   [reconciler events]
+   (let [controllers (.-controllers reconciler)
+-        co-effects (.-co_effects reconciler)
+         effect-handlers (.-effect_handlers reconciler)
+         state-atom (.-state reconciler)]
+     (reset!
+@@ -36,13 +34,7 @@
+           (do
+             (assert (contains? controllers ctrl) (str "Controller " ctrl " is not found"))
+             (let [ctrl-fn (get controllers ctrl)
+-                  cofx (get-in (.-meta ctrl) [:citrus event-key :cofx])
+-                  cofx (reduce
+-                         (fn [cofx [k & args]]
+-                           (assoc cofx k (apply (co-effects k) args)))
+-                         {}
+-                         cofx)
+-                  effects (ctrl-fn event-key event-args (get state ctrl) cofx)]
++                  effects (ctrl-fn event-key event-args (get state ctrl) state)]
+               (m/doseq [effect (dissoc effects :state)]
+                 (let [[eff-type effect] effect]
+                   (when (s/check-asserts?)
+```
