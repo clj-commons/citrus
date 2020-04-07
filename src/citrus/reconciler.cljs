@@ -14,13 +14,53 @@
     (release-fn id))
   (vreset! scheduled? (schedule-fn f)))
 
+(defn citrus-default-handler
+  "Implements Citrus' default event handling (as of 3.2.3).
+
+  This function can be copied into your project and adapted to your needs.
+
+  `events` is expected to be a list of events (tuples):
+
+     [ctrl event-key event-args]"
+  [reconciler events]
+  (let [controllers (.-controllers reconciler)
+        co-effects (.-co_effects reconciler)
+        effect-handlers (.-effect_handlers reconciler)
+        state-atom (.-state reconciler)]
+    (reset!
+      state-atom
+      (loop [state @reconciler
+             [[ctrl event-key event-args :as event] & events] events]
+        (if (nil? event)
+          state
+          (do
+            (assert (contains? controllers ctrl) (str "Controller " ctrl " is not found"))
+            (let [ctrl-fn (get controllers ctrl)
+                  cofx (get-in (.-meta ctrl) [:citrus event-key :cofx])
+                  cofx (reduce
+                         (fn [cofx [k & args]]
+                           (assoc cofx k (apply (co-effects k) args)))
+                         {}
+                         cofx)
+                  effects (ctrl-fn event-key event-args (get state ctrl) cofx)]
+              (m/doseq [effect (dissoc effects :state)]
+                (let [[eff-type effect] effect]
+                  (when (s/check-asserts?)
+                    (when-let [spec (s/get-spec eff-type)]
+                      (s/assert spec effect)))
+                  (when-let [handler (get effect-handlers eff-type)]
+                    (handler reconciler ctrl effect))))
+              (if (contains? effects :state)
+                (recur (assoc state ctrl (:state effects)) events)
+                (recur state events)))))))))
+
 (defprotocol IReconciler
   (dispatch! [this controller event args])
   (dispatch-sync! [this controller event args])
   (broadcast! [this event args])
   (broadcast-sync! [this event args]))
 
-(deftype Reconciler [controllers effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
+(deftype Reconciler [controllers default-handler effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
 
   Object
   (equiv [this other]
@@ -59,66 +99,19 @@
 
   IReconciler
   (dispatch! [this cname event args]
-    (assert (contains? controllers cname) (str "Controller " cname " is not found"))
-    (assert (some? event) (str "Controller " cname " was called without event name"))
-
-    (queue-effects!
-      queue
-      [cname event #((get controllers cname) event args (get %1 cname) %2)])
-
+    (assert (some? event) (str "dispatch! was called without event name:" (pr-str [cname event args])))
+    (queue-effects! queue [cname event args])
     (schedule-update!
       batched-updates
       scheduled?
-      (fn []
-        (let [events @queue
-              _ (clear-queue! queue)
-              next-state
-              (loop [st @state
-                     [event & events] events]
-                (if (seq event)
-                  (let [[cname ename ctrl] event
-                        cofx (get-in (.-meta ctrl) [:citrus ename :cofx])
-                        cofx (reduce
-                               (fn [cofx [key & args]]
-                                 (assoc cofx key (apply (co-effects key) args)))
-                               {}
-                               cofx)
-                        effects (ctrl st cofx)]
-                    (m/doseq [effect (dissoc effects :state)]
-                      (let [[id effect] effect]
-                        (when (s/check-asserts?)
-                          (when-let [spec (s/get-spec id)]
-                            (s/assert spec effect)))
-                        (when-let [handler (get effect-handlers id)]
-                          (handler this cname effect))))
-                    (if (contains? effects :state)
-                      (recur (assoc st cname (:state effects)) events)
-                      (recur st events)))
-                  st))]
-          (reset! state next-state)))))
+      (fn batch-runner []
+        (let [events @queue]
+          (clear-queue! queue)
+          (default-handler this events)))))
 
   (dispatch-sync! [this cname event args]
-    (assert (contains? controllers cname) (str "Controller " cname " is not found"))
-    (assert (some? event) (str "Controller " cname " was called without event name"))
-
-    (let [ctrl (get controllers cname)
-          cofx (get-in (.-meta ctrl) [:citrus event :cofx])
-          cofx (reduce
-                 (fn [cofx [key & args]]
-                   (assoc cofx key (apply (co-effects key) args)))
-                 {}
-                 cofx)
-          effects (ctrl event args (get @state cname) cofx)]
-      (m/doseq [effect effects]
-        (let [[id effect] effect
-              handler (get effect-handlers id)]
-          (when (s/check-asserts?)
-            (when-let [spec (s/get-spec id)]
-              (s/assert spec effect)))
-          (cond
-            (= id :state) (swap! state assoc cname effect)
-            handler (handler this cname effect)
-            :else nil)))))
+    (assert (some? event) (str "dispatch! was called without event name:" (pr-str [cname event args])))
+    (default-handler this [[cname event args]]))
 
   (broadcast! [this event args]
     (m/doseq [controller (keys controllers)]
