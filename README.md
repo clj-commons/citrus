@@ -240,6 +240,8 @@ An effect is key/value pair where the key is the name of the effect handler and 
 
 It's important to understand that `state` value that is passed in won't affect the whole state, but only the part corresponding to its associated key in the `:controllers` map of the reconciler.
 
+> :rocket: Citrus event handling is very customizable through an (alpha level) [`:default-handler` option](doc/default-handler.md).
+
 ### Side effects
 
 A side effect is an impure computation e.g. state mutation, HTTP request, storage access, etc. Because handling side effects is inconvenient and usually leads to cumbersome code, this operation is pushed outside of user code. In *Citrus* you don't perform effects directly in controllers. Instead controller methods return a hash map of effects represented as data. In every entry of the map the key is a name of the corresponding effects handler and the value is a description of the effect.
