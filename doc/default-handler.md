@@ -23,7 +23,7 @@ pass a default handler.
   ```
 
 - When not passing in anything for this option, the handler will default to
-  `citrus.reconciler/citrus-default-handler`, which behaves identical to the
+  [`citrus.reconciler/citrus-default-handler`](https://github.com/clj-commons/citrus/blob/220d6608c62e5deb91f0efb3ea37a6e435807148/src/citrus/reconciler.cljs#L17-L55), which behaves identical to the
   regular event handling of Citrus as of `v3.2.3`.
 - The default handler will process all events of the current batch before
   resetting the reconciler `state`. This reduces the number of watch triggers
@@ -56,7 +56,7 @@ Event handlers currently take four arguments `[controller-kw event-kw
 event-args co-effects]`. As described above one motivation for default handlers
 has been to give event handlers access to the entire state of the application.
 
-By implementing a new default handler based on [`citrus.reconciler/citrus-default-handler`]() we can change how our controller multimethods are called, replacing the `co-effects` argument with the full state of the reconciler.
+By implementing a new default handler based on [`citrus.reconciler/citrus-default-handler`](https://github.com/clj-commons/citrus/blob/220d6608c62e5deb91f0efb3ea37a6e435807148/src/citrus/reconciler.cljs#L17-L55) we can change how our controller multimethods are called, replacing the `co-effects` argument with the full state of the reconciler.
 
 > Co-effects are largely undocumented right now and might be removed in a
 > future release. Please [add a note to this
