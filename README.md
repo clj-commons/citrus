@@ -240,7 +240,7 @@ An effect is key/value pair where the key is the name of the effect handler and 
 
 It's important to understand that `state` value that is passed in won't affect the whole state, but only the part corresponding to its associated key in the `:controllers` map of the reconciler.
 
-> :rocket: Citrus event handling is very customizable through an (alpha level) [`:default-handler` option](doc/default-handler.md).
+> :rocket: Citrus' event handling is very customizable through an (alpha level) [`:citrus/handler` option](doc/custom-handler.md).
 
 ### Side effects
 

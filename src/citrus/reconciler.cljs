@@ -60,7 +60,7 @@
   (broadcast! [this event args])
   (broadcast-sync! [this event args]))
 
-(deftype Reconciler [controllers default-handler effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
+(deftype Reconciler [controllers citrus-handler effect-handlers co-effects state queue scheduled? batched-updates chunked-updates meta watch-fns]
 
   Object
   (equiv [this other]
@@ -107,11 +107,11 @@
       (fn batch-runner []
         (let [events @queue]
           (clear-queue! queue)
-          (default-handler this events)))))
+          (citrus-handler this events)))))
 
   (dispatch-sync! [this cname event args]
     (assert (some? event) (str "dispatch! was called without event name:" (pr-str [cname event args])))
-    (default-handler this [[cname event args]]))
+    (citrus-handler this [[cname event args]]))
 
   (broadcast! [this event args]
     (m/doseq [controller (keys controllers)]
