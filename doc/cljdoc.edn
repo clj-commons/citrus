@@ -1,0 +1,3 @@
+{:cljdoc.doc/tree [["Readme" {:file "README.md"}]
+                   ["Changelog" {:file "CHANGELOG.md"}]
+                   ["Default Handlers" {:file "doc/default-handler.md"}]]}
