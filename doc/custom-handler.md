@@ -1,20 +1,25 @@
-# Default Handlers
+# Citrus Handler
 
-Default handlers are a way to adapt Citrus' event handling to users needs that
-haven't been anticipated by the framework. Initially they have been motivated
-by [the need to access all controllers state in event
-handlers](https://github.com/clj-commons/citrus/issues/50) but theoretically
-they open up Citrus' event handling to many more customizations. 
+Citrus event handling is implemented via a handler function that processes
+a batch of events. The behavior of this handler function can be customized
+by passing an alternative handler function as `:citrus/handler` when creating
+a reconciler instance.
 
-:warning: Default handlers are experimental and subject to change. Please
-report your experiences using them [in this GitHub issue](https://github.com/clj-commons/citrus/issues/50).
+By providing a custom `:citrus/handler` you can adapt your event handling
+in ways that haven't been anticipated by the Citrus framework.
 
-### Usage 
+Initially this customization option has been motivated by [the need to access
+all controllers state in event handlers](https://github.com/clj-commons/citrus/issues/50).
 
-When constructing a reconciler the `:default-handler` option can be used to
-pass a default handler.
+:bulb: This feature is experimental and subject to change. Please report your
+experiences using them [in this GitHub issue](https://github.com/clj-commons/citrus/issues/50).
 
-- `:default-handler` should be a function like
+### Usage
+
+When constructing a reconciler the `:citrus/handler` option can be used to
+pass a custom handler that processes a batch of events.
+
+- `:citrus/handler` should be a function like
   ```clj
   (fn handler [reconciler events])
   ;; where `events` is a list of event tuples like this one
@@ -25,16 +30,16 @@ pass a default handler.
 - When not passing in anything for this option, the handler will default to
   [`citrus.reconciler/citrus-default-handler`](https://github.com/clj-commons/citrus/blob/220d6608c62e5deb91f0efb3ea37a6e435807148/src/citrus/reconciler.cljs#L17-L55), which behaves identical to the
   regular event handling of Citrus as of `v3.2.3`.
-- The default handler will process all events of the current batch before
+- The handler will process all events of the current batch before
   resetting the reconciler `state`. This reduces the number of watch triggers
   for subscriptions and similar tools using `add-watch` with the reconciler
   `state` atom.
 
 #### Open extension
 
-With the ability to override the `default-handler` the `controller` and
+With the ability to override the `citrus/handler` the `controller` and
 `effect-handlers` options almost become superfluous as all behavior influenced
-by these options can now also be controlled via `default-handler`. Some ideas
+by these options can now also be controlled via `:citrus/handler`. Some ideas
 for things that are now possible to build on top of Citrus that previously
 weren't:
 
@@ -44,19 +49,20 @@ weren't:
 - Completely replace Citrus multimethod dispatching with a custom handler registry
 
 > **Note** that breaking out of controllers as Citrus provides them impacts how
-> Citrus' `broadcast` functions work.
+> Citrus' `broadcast` functions work. `broadcast!` and `broadcast-sync!` rely
+> on what is being passed to the reconciler as `:controllers`.
 
 ### Recipes
 
-:wave: Have you used `default-handler` to do something interesting? Open a PR and share your approach here!
+:wave: Have you used `:citrus/handler` to do something interesting? Open a PR and share your approach here!
 
 #### Passing the entire state as fourth argument
 
 Event handlers currently take four arguments `[controller-kw event-kw
-event-args co-effects]`. As described above one motivation for default handlers
+event-args co-effects]`. As described above one motivation for custom handlers
 has been to give event handlers access to the entire state of the application.
 
-By implementing a new default handler based on [`citrus.reconciler/citrus-default-handler`](https://github.com/clj-commons/citrus/blob/220d6608c62e5deb91f0efb3ea37a6e435807148/src/citrus/reconciler.cljs#L17-L55) we can change how our controller multimethods are called, replacing the `co-effects` argument with the full state of the reconciler.
+By implementing a new handler based on [`citrus.reconciler/citrus-default-handler`](https://github.com/clj-commons/citrus/blob/220d6608c62e5deb91f0efb3ea37a6e435807148/src/citrus/reconciler.cljs#L17-L55) we can change how our controller multimethods are called, replacing the `co-effects` argument with the full state of the reconciler.
 
 > Co-effects are largely undocumented right now and might be removed in a
 > future release. Please [add a note to this

@@ -22,7 +22,7 @@
     config              - a map of
       state             - app state atom
       controllers       - a hash of state controllers
-      default-handler   - a function to handle incoming events (see doc/default-handler.md)
+      citrus/handler    - a function to handle incoming events (see doc/custom-handler.md)
       effect-handlers   - a hash of effects handlers
       batched-updates   - a hash of two functions used to batch reconciler updates, defaults to
                           `{:schedule-fn js/requestAnimationFrame :release-fn js/cancelAnimationFrame}`
@@ -30,13 +30,14 @@
 
   Returned value supports deref, watches and metadata.
   The only supported option is `:meta`"
-  [{:keys [state controllers default-handler effect-handlers co-effects batched-updates chunked-updates]}
+  [{:keys [state controllers effect-handlers co-effects batched-updates chunked-updates]
+    :citrus/keys [handler]}
    & {:as options}]
   (binding []
     (let [watch-fns (volatile! {})
           rec (r/->Reconciler
                 controllers
-                (or default-handler r/citrus-default-handler)
+                (or handler r/citrus-default-handler)
                 effect-handlers
                 co-effects
                 state

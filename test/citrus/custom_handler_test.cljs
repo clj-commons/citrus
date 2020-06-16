@@ -40,7 +40,7 @@
                    (update-in state [:counters counter-key] (fnil dec 0)))})
 
 (def r (citrus/reconciler {:state           (atom {})
-                           :default-handler (mk-citrus-map-dispatch-handler handlers)}))
+                           :citrus/handler  (mk-citrus-map-dispatch-handler handlers)}))
 
 (def current-user (citrus/subscription r [:current-user]))
 (def counters (citrus/subscription r [:counters]))
