@@ -21,10 +21,10 @@
 
     config              - a map of
       state             - app state atom
-      controllers       - a hash of state controllers
+      controllers       - a map of state controllers
       citrus/handler    - a function to handle incoming events (see doc/custom-handler.md)
-      effect-handlers   - a hash of effects handlers
-      batched-updates   - a hash of two functions used to batch reconciler updates, defaults to
+      effect-handlers   - a map of effects handlers
+      batched-updates   - a map of two functions used to batch reconciler updates, defaults to
                           `{:schedule-fn js/requestAnimationFrame :release-fn js/cancelAnimationFrame}`
       chunked-updates   - a function used to divide reconciler update into chunks, doesn't used by default
 
