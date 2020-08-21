@@ -1,4 +1,4 @@
-(defproject clj-commons/citrus (or (System/getenv "PROJECT_VERSION") "3.2.3")
+(defproject clj-commons/citrus (or (System/getenv "PROJECT_VERSION") "3.3.0")
   :description "State management library for Rum"
   :url "https://github.com/clj-commons/citrus"
   :license {:name "Eclipse Public License"
