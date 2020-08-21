@@ -1,14 +1,14 @@
 # Citrus Handler
 
 Citrus event handling is implemented via a handler function that processes
-a batch of events. The behavior of this handler function can be customized
-by passing an alternative handler function as `:citrus/handler` when creating
-a reconciler instance.
+a batch of events. By default Citrus handles events with a controller/multimethod-based system.
+This can be customized by passing an alternative handler function as
+`:citrus/handler` when creating a reconciler instance.
 
 By providing a custom `:citrus/handler` you can adapt your event handling
 in ways that haven't been anticipated by the Citrus framework.
 
-Initially this customization option has been motivated by [the need to access
+Initially this customization option has been motivated by [the wish to access
 all controllers state in event handlers](https://github.com/clj-commons/citrus/issues/50).
 
 :bulb: This feature is experimental and subject to change. Please report your
