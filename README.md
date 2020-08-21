@@ -72,7 +72,7 @@ Have a simple, [re-frame](https://github.com/Day8/re-frame) like state managemen
 - [“Real world” example app](https://github.com/roman01la/cljs-rum-realworld-example-app)
 
 ## Installation
-Add to *project.clj* / *build.boot*: `[clj-commons/citrus "3.2.3"]`
+Add to *project.clj* / *build.boot*: `[clj-commons/citrus "3.3.0"]`
 
 ## Usage
 ```clojure
