@@ -1,3 +1,12 @@
+## 3.3.0
+
+- Allow full customization of event handling via a new `:citrus/handler` option
+  that allows you to replace the standard controller/multimethod-based event
+  handling.
+  - See the [full documentation on custom handlers](https://github.com/clj-commons/citrus/blob/master/doc/custom-handler.md)
+  - or see [the tests](https://github.com/clj-commons/citrus/blob/master/test/citrus/custom_handler_test.cljs) for a concise example.
+  - This change is intended to be **fully backwards compatible**, please open an issue if you encounter any problems.
+
 ## 3.2.3
 - Don't evaluate default-batched-updates until necessary 0788a7f10
 
