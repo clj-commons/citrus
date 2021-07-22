@@ -62,7 +62,7 @@ jobs:
   deploy:
     docker:
       # specify the version you desire here
-      - image: circleci/clojure:lein-2.9.1-node-browser
+      - image: circleci/clojure:lein-2.9.1-node-browsers
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
