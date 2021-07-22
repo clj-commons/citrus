@@ -1,8 +1,13 @@
-(defproject clj-commons/citrus "3.2.3"
+(defproject clj-commons/citrus (or (System/getenv "PROJECT_VERSION") "3.2.3")
   :description "State management library for Rum"
   :url "https://github.com/clj-commons/citrus"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
+  :deploy-repositories [["clojars" {:url "https://repo.clojars.org"
+                                    :username :env/clojars_username
+                                    :password :env/clojars_password
+                                    :sign-releases true}]]
+
   :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
                  [org.clojure/clojurescript "1.10.597" :scope "provided"]
                  [rum "0.11.4"]]
