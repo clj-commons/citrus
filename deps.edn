@@ -1,3 +1,3 @@
 {:deps {org.clojure/clojure {:mvn/version "1.10.1"}
         org.clojure/clojurescript {:mvn/version "1.10.597"}
-        rum {:mvn/version "0.11.4"}}}
+        rum/rum {:mvn/version "0.11.4"}}}
