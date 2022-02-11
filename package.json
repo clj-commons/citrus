@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/clj-commons/citrus#readme",
   "devDependencies": {
-    "karma": "^2.0.4",
+    "karma": "^6.3.14",
     "karma-chrome-launcher": "^2.2.0",
     "karma-cli": "^1.0.1",
     "karma-cljs-test": "^0.1.0",
